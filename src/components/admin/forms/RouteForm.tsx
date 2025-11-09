@@ -24,10 +24,10 @@ import { uploadFile } from '@/lib/actions';
 
 const routeSchema = z.object({
   nombre: z.string().min(3, 'El nombre es requerido.'),
-  especificacion: z.string().min(10, 'La especificación es requerida.'),
+  especificacion: z.string().optional(),
   category: z.enum(['grecia', 'sarchi'], { required_error: 'La categoría es requerida.' }),
-  duracionMin: z.coerce.number().min(1, 'La duración debe ser al menos 1.'),
-  tarifaCRC: z.coerce.number().min(1, 'La tarifa es requerida.'),
+  duracionMin: z.coerce.number().min(0, 'La duración no puede ser negativa.'),
+  tarifaCRC: z.coerce.number().min(0, 'La tarifa no puede ser negativa.'),
   imagenTarjetaUrl: z.string().optional(),
   imagenHorarioUrl: z.string().optional(),
 });
@@ -55,8 +55,8 @@ export function RouteForm({ initialData, onSubmit, isLoading, onClose }: RouteFo
       nombre: '',
       especificacion: '',
       category: 'grecia',
-      duracionMin: 30,
-      tarifaCRC: 500,
+      duracionMin: 0,
+      tarifaCRC: 0,
       imagenTarjetaUrl: '',
       imagenHorarioUrl: '',
     },
@@ -93,7 +93,7 @@ export function RouteForm({ initialData, onSubmit, isLoading, onClose }: RouteFo
           <FormItem><FormLabel>Nombre de la Ruta</FormLabel><FormControl><Input placeholder="Ej: Grecia - San Roque" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <FormField name="especificacion" control={form.control} render={({ field }) => (
-          <FormItem><FormLabel>Especificación</FormLabel><FormControl><Textarea placeholder="Ej: Por el EBAIS..." {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Especificación (Opcional)</FormLabel><FormControl><Textarea placeholder="Ej: Por el EBAIS..." {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField name="category" control={form.control} render={({ field }) => (

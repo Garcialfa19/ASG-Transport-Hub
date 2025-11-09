@@ -26,8 +26,8 @@ const routeSchema = z.object({
   nombre: z.string().min(3, 'El nombre es requerido.'),
   especificacion: z.string().optional(),
   category: z.enum(['grecia', 'sarchi'], { required_error: 'La categoría es requerida.' }),
-  duracionMin: z.coerce.number().min(0, 'La duración no puede ser negativa.'),
-  tarifaCRC: z.coerce.number().min(0, 'La tarifa no puede ser negativa.'),
+  duracionMin: z.coerce.number().positive('La duración debe ser un número positivo.'),
+  tarifaCRC: z.coerce.number().positive('La tarifa debe ser un número positivo.'),
   imagenTarjetaUrl: z.string().optional(),
   imagenHorarioUrl: z.string().optional(),
 });

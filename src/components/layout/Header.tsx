@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import { Logo } from '@/components/shared/Logo';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/hooks/use-auth';
 
 const navLinks = [
   { href: '/alertas', label: 'Alertas' },
@@ -18,7 +17,6 @@ const navLinks = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,16 +39,6 @@ export function Header() {
           <Link href={link.href}>{link.label}</Link>
         </Button>
       ))}
-      {user && (
-         <Button
-            variant="ghost"
-            asChild
-            className={cn(isMobile && 'w-full justify-start text-lg')}
-            onClick={() => isMobile && setIsMobileMenuOpen(false)}
-          >
-            <Link href="/admin/dashboard">Admin</Link>
-          </Button>
-      )}
     </>
   );
 

@@ -10,7 +10,7 @@ export function Footer() {
         <div className="flex justify-center items-center gap-2 my-4">
             <span className="text-sm">Síguenos en:</span>
             <a href="https://www.facebook.com/p/ASG-Autotransportes-Santa-Gertrudis-Limitada-100057579364928/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <Facebook className="h-5 w-5 hover:text-primary" />
+                <Facebook className="h-4 w-4 hover:text-primary" />
             </a>
         </div>
         <p className="text-sm">

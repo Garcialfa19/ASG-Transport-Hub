@@ -55,7 +55,7 @@ export async function uploadFile(formData: FormData, folder: string) {
 type RouteData = Omit<Route, 'id' | 'lastUpdated'>;
 
 export async function addRoute(data: RouteData) {
-  const id = slugify(data.nombre);
+  const id = slugify(`${data.nombre} ${data.especificacion}`);
   return handleFirestoreAction(async () => {
     await adminDb.collection('routes').doc(id).set({
       ...data,

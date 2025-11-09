@@ -46,7 +46,7 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
         );
       } else {
         const newRoute: Route = {
-            id: slugify(data.nombre),
+            id: slugify(`${data.nombre} ${data.especificacion}`),
             ...data,
             lastUpdated: new Date().toISOString()
         }

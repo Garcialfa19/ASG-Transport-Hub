@@ -59,7 +59,7 @@ export default function ContactoPage() {
             <h2 className="text-2xl font-bold">Síganos en Redes Sociales</h2>
             <div className="mt-4">
                  <Button asChild>
-                    <a href="https://www.facebook.com/p/Autotransportes-Santa-Gertrudis-100063625472097/" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.facebook.com/p/ASG-Autotransportes-Santa-Gertrudis-Limitada-100057579364928/" target="_blank" rel="noopener noreferrer">
                         <Facebook className="mr-2 h-4 w-4" /> Facebook
                     </a>
                 </Button>

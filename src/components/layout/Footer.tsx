@@ -9,7 +9,7 @@ export function Footer() {
         <p className="text-sm">&copy; {currentYear} Autotransportes Santa Gertrudis.</p>
         <div className="flex justify-center items-center gap-2 my-4">
             <span className="text-sm">Síguenos en:</span>
-            <a href="https://www.facebook.com/p/Autotransportes-Santa-Gertrudis-100063625472097/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <a href="https://www.facebook.com/p/ASG-Autotransportes-Santa-Gertrudis-Limitada-100057579364928/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <Facebook className="h-5 w-5 hover:text-primary" />
             </a>
         </div>

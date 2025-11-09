@@ -1,3 +1,64 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "route-grecia-centro",
+      "description": "Bus waiting at a station in Grecia",
+      "imageUrl": "https://images.unsplash.com/photo-1563359250-602107d96e47?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxidXMlMjBzdGF0aW9ufGVufDB8fHx8MTc2MjY2OTQ0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bus station"
+    },
+    {
+      "id": "route-sarchi-norte",
+      "description": "Bus driving on a scenic road in Sarchi",
+      "imageUrl": "https://images.unsplash.com/photo-1613482419900-eca1d3b53c3f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxidXMlMjByb2FkfGVufDB8fHx8MTc2MjY2OTQ0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bus road"
+    },
+    {
+      "id": "route-san-roque",
+      "description": "Bus in a rural town square",
+      "imageUrl": "https://images.unsplash.com/photo-1598698222618-3602b9da496d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidXMlMjB0b3dufGVufDB8fHx8MTc2MjY2OTQ0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bus town"
+    },
+    {
+      "id": "route-poro",
+      "description": "A modern bus on a sunny day",
+      "imageUrl": "https://images.unsplash.com/photo-1706367340442-80a7aa36493e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bW9kZXJuJTIwYnVzfGVufDB8fHx8MTc2MjY2NzI2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern bus"
+    },
+    {
+      "id": "schedule-placeholder",
+      "description": "A generic bus schedule timetable",
+      "imageUrl": "https://images.unsplash.com/photo-1762088780427-80c4aa39da95?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxidXMlMjBzY2hlZHVsZXxlbnwwfHx8fDE3NjI2Njk0NDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bus schedule"
+    },
+    {
+      "id": "history-hero",
+      "description": "Vintage bus from the 1960s",
+      "imageUrl": "https://images.unsplash.com/photo-1753024967956-4ab3dc942811?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx2aW50YWdlJTIwYnVzfGVufDB8fHx8MTc2MjY2OTQ0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vintage bus"
+    },
+    {
+      "id": "history-mision",
+      "description": "A bus driver smiling at a passenger",
+      "imageUrl": "https://images.unsplash.com/photo-1631798262744-5c15818c2e92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidXMlMjBkcml2ZXJ8ZW58MHx8fHwxNzYyNjY5NDQ1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bus driver"
+    },
+    {
+      "id": "history-vision",
+      "description": "A modern, clean bus interior",
+      "imageUrl": "https://images.unsplash.com/photo-1670039765868-a9d357257559?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxidXMlMjBpbnRlcmlvcnxlbnwwfHx8fDE3NjI1OTgyOTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bus interior"
+    },
+    {
+      "id": "history-valores",
+      "description": "A diverse group of people waiting for a bus",
+      "imageUrl": "https://images.unsplash.com/photo-1722829470444-479ecd93c6f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVvcGxlJTIwd2FpdGluZ3xlbnwwfHx8fDE3NjI2Njk0NDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "people waiting"
+    },
+    {
+      "id": "contact-map",
+      "description": "A map showing the location of Grecia, Costa Rica",
+      "imageUrl": "https://images.unsplash.com/photo-1569917002373-28a8c52a4891?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFwJTIwbG9jYXRpb258ZW58MHx8fHwxNzYyNTg3ODkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "map location"
+    }
+  ]
 }

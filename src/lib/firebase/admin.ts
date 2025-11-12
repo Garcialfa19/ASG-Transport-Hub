@@ -8,46 +8,52 @@ import admin from 'firebase-admin';
 // 5. The value should be the full JSON content of the downloaded file, enclosed in single quotes.
 //    Example: FIREBASE_SERVICE_ACCOUNT='{"type": "service_account", ...}'
 
-if (!admin.apps.length) {
+function initializeAdminApp() {
+  if (admin.apps.length > 0) {
+    return admin.app();
+  }
+
   try {
     const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
     if (!serviceAccountString) {
       throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
     }
     const serviceAccount = JSON.parse(serviceAccountString);
-    admin.initializeApp({
+
+    return admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
   } catch (error) {
     console.error('Firebase admin initialization error:', error);
+    // Throw a more specific error to help with debugging
+    throw new Error(`Failed to initialize Firebase Admin SDK. Please check your FIREBASE_SERVICE_ACCOUNT environment variable. Original error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
+
+// A function to get the initialized admin app
+const getAdminApp = () => {
+    initializeAdminApp();
+    return admin;
+};
 
 
 // Use a getter function for Firestore to ensure it's accessed after initialization
 function getAdminDb() {
-  if (!admin.apps.length) {
-    // This will be caught by Next.js and shown in the browser during development
-    throw new Error("Firebase Admin SDK not initialized. Check your FIREBASE_SERVICE_ACCOUNT environment variable.");
-  }
-  return admin.firestore();
+  const adminApp = getAdminApp();
+  return adminApp.firestore();
 }
 
 function getAdminAuth() {
-    if (!admin.apps.length) {
-        throw new Error("Firebase Admin SDK not initialized.");
-    }
-    return admin.auth();
+    const adminApp = getAdminApp();
+    return adminApp.auth();
 }
 
 function getAdminStorage() {
-    if (!admin.apps.length) {
-        throw new Error("Firebase Admin SDK not initialized.");
-    }
-    return admin.storage();
+    const adminApp = getAdminApp();
+    return adminApp.storage();
 }
 
-
+// Export getters instead of direct instances
 export const adminDb = getAdminDb();
 export const adminAuth = getAdminAuth();
 export const adminStorage = getAdminStorage();

@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import type { Driver, Route } from '@/lib/definitions';
 import { addDriver, updateDriver, deleteDriver } from '@/lib/actions';
@@ -136,6 +136,9 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingDriver ? 'Editar Chofer' : 'Agregar Nuevo Chofer'}</DialogTitle>
+            <DialogDescription>
+              {editingDriver ? 'Actualice los detalles del chofer.' : 'Agregue un nuevo chofer al sistema.'}
+            </DialogDescription>
           </DialogHeader>
           <DriverForm 
             initialData={editingDriver}

@@ -85,7 +85,10 @@ export function DriverForm({ initialData, routes, onSubmit, isLoading, onClose }
           render={({ field }) => (
             <FormItem>
               <FormLabel>Ruta Asignada (Opcional)</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+               <Select
+                onValueChange={field.onChange}
+                value={field.value || NONE}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccione una ruta" />

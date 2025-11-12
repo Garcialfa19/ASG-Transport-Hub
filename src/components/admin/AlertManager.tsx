@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import type { Alert } from '@/lib/definitions';
 import { addAlert, deleteAlert } from '@/lib/actions';
@@ -106,6 +106,9 @@ export function AlertManager({ initialAlerts }: AlertManagerProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Agregar Nueva Alerta</DialogTitle>
+             <DialogDescription>
+              Cree una nueva alerta de servicio que se mostrará públicamente en la página de Alertas.
+            </DialogDescription>
           </DialogHeader>
           <AlertForm onSubmit={handleAddAlert} isLoading={isLoading} onClose={() => setIsFormOpen(false)} />
         </DialogContent>

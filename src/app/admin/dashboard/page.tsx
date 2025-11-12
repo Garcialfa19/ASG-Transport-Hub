@@ -11,50 +11,45 @@ import { useAuth } from '@/hooks/use-auth';
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
-  const [routes, setRoutes] = useState<Route[] | null>(null);
-  const [alerts, setAlerts] = useState<Alert[] | null>(null);
-  const [drivers, setDrivers] = useState<Driver[] | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
-
+    
     const auth = getAuth(app);
     const unsub = onAuthStateChanged(auth, async (user) => {
       try {
-        // Always try public data
-        const [routesData, alertsData] = await Promise.all([
+        // public reads
+        const [r, a] = await Promise.all([
           getClientRoutes().catch(() => []),
           getAlerts().catch(() => []),
         ]);
-        setRoutes(routesData);
-        setAlerts(alertsData);
+        setRoutes(r);
+        setAlerts(a);
 
-        // If signed in, check claim and conditionally load drivers
         if (user) {
           const token = await user.getIdTokenResult(true);
-          const adminFlag = token.claims?.admin === true;
-          setIsAdmin(adminFlag);
-
-          if (adminFlag) {
-            const driversData = await getDrivers().catch(() => []);
-            setDrivers(driversData);
+          const isAdmin = token.claims?.admin === true;
+          if (isAdmin) {
+            const d = await getDrivers().catch(() => []);
+            setDrivers(d);
           } else {
-            setDrivers([]); // not admin -> show empty drivers list
+            setDrivers([]); // hide “drivers” for non-admin
           }
         } else {
-          setDrivers([]); // signed out -> no drivers
+          setDrivers([]);
         }
       } finally {
         setLoading(false);
       }
     });
-
     return () => unsub();
   }, [authLoading]);
 
-  if (loading || authLoading || routes === null || alerts === null || drivers === null) {
+  if (loading || authLoading) {
      return (
       <div className="container py-8">
         <Skeleton className="h-8 w-1/3 mb-6" />
@@ -67,8 +62,7 @@ export default function AdminDashboardPage() {
       </div>
     );
   }
-
-  // AuthGuard will handle redirection if not signed in at all
+  
   if (!user) {
     return null;
   }

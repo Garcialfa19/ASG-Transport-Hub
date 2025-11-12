@@ -1,5 +1,7 @@
 import { AuthGuard } from "@/components/shared/AuthGuard";
 
+export const runtime = 'nodejs';
+
 export default function DashboardLayout({
   children,
 }: {

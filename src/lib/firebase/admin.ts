@@ -1,56 +1,30 @@
 import admin from 'firebase-admin';
 
-// This function ensures the Firebase Admin SDK is initialized only once.
-function initializeAdminApp() {
-  if (admin.apps.length > 0) {
-    return admin.app();
+function getAdminApp() {
+  if (admin.apps.length) return admin.app();
+
+  const svc = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!svc) throw new Error('FIREBASE_SERVICE_ACCOUNT is not set');
+
+  const creds = JSON.parse(svc);
+  if (creds.private_key?.includes('\\n')) {
+    creds.private_key = creds.private_key.replace(/\\n/g, '\n');
   }
 
-  try {
-    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (!serviceAccountString) {
-      throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
-    }
-    const serviceAccount = JSON.parse(serviceAccountString);
+  const storageBucket =
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    `${creds.project_id}.appspot.com`;
 
-    // Fix for private key format issues when stored in environment variables
-    if (serviceAccount.private_key) {
-        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-    }
+  admin.initializeApp({
+    credential: admin.credential.cert(creds),
+    storageBucket,
+  });
 
-    return admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-  } catch (error) {
-    console.error('Firebase admin initialization error:', error);
-    // Throw a more specific error to help with debugging
-    throw new Error(`Failed to initialize Firebase Admin SDK. Please check your FIREBASE_SERVICE_ACCOUNT environment variable. Original error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+  return admin.app();
 }
 
-// A function to get the initialized admin app
-const getAdminApp = () => {
-    return initializeAdminApp();
-};
-
-
-// Use a getter function for Firestore to ensure it's accessed after initialization
-function getAdminDb() {
-  const adminApp = getAdminApp();
-  return adminApp.firestore();
-}
-
-function getAdminAuth() {
-    const adminApp = getAdminApp();
-    return adminApp.auth();
-}
-
-function getAdminStorage() {
-    const adminApp = getAdminApp();
-    return adminApp.storage();
-}
-
-// Export getters instead of direct instances
-export const adminDb = getAdminDb();
-export const adminAuth = getAdminAuth();
-export const adminStorage = getAdminStorage();
+export const adminApp = getAdminApp;
+export const adminDb = () => adminApp().firestore();
+export const adminAuth = () => adminApp().auth();
+export const adminStorage = () => adminApp().storage();
+export const adminFieldValue = () => admin.firestore.FieldValue;

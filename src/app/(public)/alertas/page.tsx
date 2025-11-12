@@ -1,4 +1,5 @@
 'use client';
+import { useMemo } from 'react';
 import { Bell, Info } from 'lucide-react';
 import type { Alert } from '@/lib/definitions';
 import {
@@ -13,9 +14,12 @@ import { collection, orderBy, query } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase/client';
 
 export default function AlertasPage() {
-  const { data: alerts, loading } = useCollection<Alert>(
-    query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'))
-  );
+  const alertsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'))
+  }, []);
+
+  const { data: alerts, loading } = useCollection<Alert>(alertsQuery);
 
   return (
     <div className="container py-12 md:py-16">

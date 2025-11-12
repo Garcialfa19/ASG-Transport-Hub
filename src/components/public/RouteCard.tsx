@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { Clock, DollarSign, MapPin } from 'lucide-react';
+import { Clock, MapPin } from 'lucide-react';
 
 export default function RouteCard({ nombre, duracionMin, costo, origen, destino, imagenUrl }: {
   nombre: string;
@@ -37,7 +37,7 @@ export default function RouteCard({ nombre, duracionMin, costo, origen, destino,
             <Clock className="h-4 w-4" /> {duracion}
           </span>
           <span className="flex items-center gap-1">
-            <DollarSign className="h-4 w-4" /> {costoFmt}
+            {costoFmt}
           </span>
         </div>
         {(origen || destino) && (

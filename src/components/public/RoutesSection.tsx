@@ -1,6 +1,6 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getRoutes } from "@/lib/actions";
-import { RouteCard } from "./RouteCard";
+import { getRoutes } from '@/lib/actions';
+import { RouteCard } from './RouteCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export async function RoutesSection() {
   const routes = await getRoutes();
@@ -11,7 +11,7 @@ export async function RoutesSection() {
     <section className="container py-12 md:py-16">
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Nuestras Rutas</h1>
-        <p className="mt-2 text-lg text-muted-foreground">Encuentre el horario y la tarifa para su viaje.</p>
+        <p className="mt-2 text-lg text-muted-foreground">Encuentre información sobre horarios y tarifas de nuestras rutas principales.</p>
       </div>
 
       <Tabs defaultValue="grecia" className="w-full">
@@ -19,7 +19,6 @@ export async function RoutesSection() {
           <TabsTrigger value="grecia">Rutas de Grecia</TabsTrigger>
           <TabsTrigger value="sarchi">Rutas de Sarchí</TabsTrigger>
         </TabsList>
-
         <TabsContent value="grecia" className="mt-8">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {greciaRoutes.map((route) => (
@@ -30,7 +29,6 @@ export async function RoutesSection() {
             <p className="text-center text-muted-foreground mt-12">No hay rutas de Grecia para mostrar.</p>
           )}
         </TabsContent>
-
         <TabsContent value="sarchi" className="mt-8">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {sarchiRoutes.map((route) => (

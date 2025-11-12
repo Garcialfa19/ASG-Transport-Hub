@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
-import { Clock, Info } from 'lucide-react';
+import { Clock, Tag, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -10,79 +10,83 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import type { Route } from '@/lib/definitions';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Badge } from '../ui/badge';
 
 interface RouteCardProps {
   route: Route;
 }
 
 export function RouteCard({ route }: RouteCardProps) {
-  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
-  const defaultImage = PlaceHolderImages.find(p => p.id === 'route-grecia-centro');
-  const schedulePlaceholder = PlaceHolderImages.find(p => p.id === 'schedule-placeholder');
-
-  const cardImageUrl = route.imagenTarjetaUrl || defaultImage?.imageUrl || '';
-  const scheduleImageUrl = route.imagenHorarioUrl || schedulePlaceholder?.imageUrl || '';
+  const getImageUrl = (imagePath?: string) => {
+    const defaultImage = PlaceHolderImages.find(p => p.id === 'route-grecia-centro')?.imageUrl || '/default-image.png';
+    return imagePath || defaultImage;
+  }
+  
+  const getScheduleImageUrl = (imagePath?: string) => {
+    const defaultImage = PlaceHolderImages.find(p => p.id === 'schedule-placeholder')?.imageUrl || '/default-schedule.png';
+    return imagePath || defaultImage;
+  }
 
   return (
-    <>
-      <Card className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg">
-        <div className="relative h-48 w-full">
-          <Image
-            src={cardImageUrl}
-            alt={`Imagen de la ruta ${route.nombre}`}
-            fill
-            className="object-cover"
-          />
+    <Card className="overflow-hidden flex flex-col">
+      <div className="relative h-40 w-full">
+        <Image
+          src={getImageUrl(route.imagenTarjetaUrl)}
+          alt={route.nombre}
+          fill
+          className="object-cover"
+        />
+      </div>
+      <CardHeader>
+        <CardTitle>{route.nombre}</CardTitle>
+        {route.especificacion && <p className="text-sm text-muted-foreground">{route.especificacion}</p>}
+      </CardHeader>
+      <CardContent className="flex-1 space-y-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>Duración: {route.duracionMin} min</span>
         </div>
-        <CardHeader>
-          <CardTitle>{route.nombre}</CardTitle>
-          {route.especificacion && (
-            <p className="text-sm text-muted-foreground">{route.especificacion}</p>
-          )}
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Badge variant="secondary" className="capitalize">{route.category}</Badge>
-            <span>•</span>
-            <Clock className="h-4 w-4" />
-            <span>{route.duracionMin} min</span>
-          </div>
-          <p className="mt-4 text-2xl font-bold">
-            ₡{route.tarifaCRC.toLocaleString('es-CR')}
-          </p>
-        </CardContent>
-        <CardFooter>
-            <Button
-              className="w-full"
-              onClick={() => setIsScheduleOpen(true)}
-              disabled={!route.imagenHorarioUrl}
-            >
-              <Info className="mr-2 h-4 w-4" />
-              Ver Horario
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Tag className="h-4 w-4" />
+           <span>Tarifa: ₡{route.tarifaCRC.toLocaleString('es-CR')}</span>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="w-full">
+                <Eye className="mr-2 h-4 w-4" />
+                Ver Horario
             </Button>
-        </CardFooter>
-      </Card>
-
-      <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Horario: {route.nombre}</DialogTitle>
-          </DialogHeader>
-          <div className="relative mt-4 h-[70vh] w-full">
-            <Image
-              src={scheduleImageUrl}
-              alt={`Horario para ${route.nombre}`}
-              fill
-              className="object-contain"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Horario de: {route.nombre}</DialogTitle>
+              <DialogDescription>
+                Este es el horario programado para esta ruta. Los horarios pueden estar sujetos a cambios.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="relative mt-4" style={{ paddingBottom: '70.75%' }}>
+              <Image
+                src={getScheduleImageUrl(route.imagenHorarioUrl)}
+                alt={`Horario de ${route.nombre}`}
+                fill
+                className="object-contain"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      </CardFooter>
+    </Card>
   );
 }

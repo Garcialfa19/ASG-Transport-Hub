@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/shared/Logo';
 import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Por favor ingrese un correo válido.' }),
@@ -34,6 +35,12 @@ export default function AdminLoginPage() {
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
+  
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/admin/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     setIsLoading(true);
@@ -53,15 +60,18 @@ export default function AdminLoginPage() {
     }
   };
   
-  // If auth state is loading, show nothing to prevent flicker
-  if (authLoading) {
-    return null;
-  }
-  
-  // If user is already logged in, redirect to dashboard
-  if (user) {
-    router.replace('/admin/dashboard');
-    return null;
+  if (authLoading || user) {
+    return (
+       <div className="flex h-screen w-screen items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                </div>
+            </div>
+        </div>
+    );
   }
 
   return (

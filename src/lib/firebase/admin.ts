@@ -1,13 +1,6 @@
 import admin from 'firebase-admin';
 
-// Instructions for the user:
-// 1. Go to your Firebase project settings -> Service accounts.
-// 2. Click "Generate new private key" to download your service account JSON file.
-// 3. DO NOT add the file to your project directory.
-// 4. Instead, create a `FIREBASE_SERVICE_ACCOUNT` environment variable in your `.env.local` file.
-// 5. The value should be the full JSON content of the downloaded file, enclosed in single quotes.
-//    Example: FIREBASE_SERVICE_ACCOUNT='{"type": "service_account", ...}'
-
+// This function ensures the Firebase Admin SDK is initialized only once.
 function initializeAdminApp() {
   if (admin.apps.length > 0) {
     return admin.app();
@@ -19,6 +12,11 @@ function initializeAdminApp() {
       throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
     }
     const serviceAccount = JSON.parse(serviceAccountString);
+
+    // Fix for private key format issues when stored in environment variables
+    if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
 
     return admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
@@ -32,8 +30,7 @@ function initializeAdminApp() {
 
 // A function to get the initialized admin app
 const getAdminApp = () => {
-    initializeAdminApp();
-    return admin;
+    return initializeAdminApp();
 };
 
 

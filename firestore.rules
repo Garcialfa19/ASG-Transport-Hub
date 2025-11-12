@@ -3,32 +3,35 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Default deny all reads and writes
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // --- Public Collections ---
-
-    // Allow public read on alerts and routes.
-    // Allow authenticated write.
-    match /(alerts|routes)/{docId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    // --- User-Specific Data ---
-
-    // Allow authenticated users to manage their own data
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // --- Public Collections: Allow public read, authenticated write ---
+    match /routes/{routeId} {
+      allow get: if true;
+      allow list, write: if request.auth != null;
     }
     
-    // --- Admin-Only Collections ---
+    // Allow public list for routes
+    match /routes {
+      allow list: if true;
+    }
 
-    // Allow authenticated users to manage drivers.
+    match /alerts/{alertId} {
+      allow get: if true;
+      allow list, write: if request.auth != null;
+    }
+
+    // Allow public list for alerts
+    match /alerts {
+      allow list: if true;
+    }
+    
+    // --- Admin-Only Collections: Allow authenticated read/write ---
     match /drivers/{driverId} {
       allow read, write: if request.auth != null;
+    }
+    
+    // --- User-Specific Data ---
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

@@ -39,6 +39,7 @@ export async function uploadFile(formData: FormData, folder: string) {
       public: true,
     });
     
+    // The publicUrl() method provides a URL that is publicly accessible.
     const publicUrl = fileRef.publicUrl();
 
     return { success: true, data: publicUrl };

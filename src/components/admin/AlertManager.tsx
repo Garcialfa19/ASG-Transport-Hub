@@ -24,7 +24,7 @@ interface AlertManagerProps {
 }
 
 export function AlertManager({ initialAlerts }: AlertManagerProps) {
-  const [alerts, setAlerts] = useState(initialAlerts);
+  const [alerts, setAlerts] = useState(initialAlerts || []);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -74,7 +74,7 @@ export function AlertManager({ initialAlerts }: AlertManagerProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {alerts.map((alert) => (
+            {alerts && alerts.map((alert) => (
               <TableRow key={alert.id}>
                 <TableCell className="font-medium">{alert.titulo}</TableCell>
                 <TableCell>{format(new Date(alert.lastUpdated), "dd/MM/yyyy HH:mm")}</TableCell>
@@ -91,7 +91,7 @@ export function AlertManager({ initialAlerts }: AlertManagerProps) {
                 </TableCell>
               </TableRow>
             ))}
-             {alerts.length === 0 && (
+             {(!alerts || alerts.length === 0) && (
               <TableRow>
                 <TableCell colSpan={3} className="h-24 text-center">
                   No hay alertas para mostrar.

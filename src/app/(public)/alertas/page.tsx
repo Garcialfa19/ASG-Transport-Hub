@@ -7,29 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
-import { getAlerts } from '@/lib/data-service-client';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { useCollection } from '@/lib/firebase/hooks/use-collection';
+import { collection, orderBy, query } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase/client';
 
 export default function AlertasPage() {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: alerts, loading } = useCollection<Alert>(
+    query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'))
+  );
 
-  useEffect(() => {
-    async function fetchAlerts() {
-      try {
-        const fetchedAlerts = await getAlerts();
-        setAlerts(fetchedAlerts);
-      } catch (error) {
-        console.error("Error fetching alerts:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchAlerts();
-  }, []);
-  
   return (
     <div className="container py-12 md:py-16">
       <div className="text-center mb-10">
@@ -43,7 +30,7 @@ export default function AlertasPage() {
               <Skeleton className="h-24 w-full" />
               <Skeleton className="h-24 w-full" />
             </div>
-        ) : alerts.length > 0 ? (
+        ) : alerts && alerts.length > 0 ? (
           <div className="space-y-4">
             {alerts.map((alert) => (
               <Card key={alert.id}>

@@ -18,10 +18,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import type { Driver, Route } from '@/lib/definitions';
 
+const NONE = "__none__";
+
 const driverSchema = z.object({
   nombre: z.string().min(3, 'El nombre es requerido.'),
   busPlate: z.string().optional(),
-  routeId: z.string().optional(),
+  routeId: z.string().optional().transform((v) => (v === NONE ? undefined : v)),
   status: z.string().optional(),
   comment: z.string().optional(),
 });
@@ -98,7 +100,7 @@ export function DriverForm({ initialData, routes, onSubmit, isLoading, onClose }
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Ninguna</SelectItem>
+                  <SelectItem value={NONE}>Ninguna</SelectItem>
                   {routes.map((route) => (
                     <SelectItem key={route.id} value={route.id}>
                       {route.nombre}

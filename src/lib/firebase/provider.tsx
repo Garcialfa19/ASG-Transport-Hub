@@ -42,8 +42,9 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
-     return (
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {loading ? (
         <div className="flex h-screen w-screen items-center justify-center">
             <div className="flex flex-col items-center gap-4">
                 <Skeleton className="h-12 w-12 rounded-full" />
@@ -53,12 +54,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
                 </div>
             </div>
         </div>
-     )
-  }
-
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {children}
+      ) : children}
     </AuthContext.Provider>
   );
 }

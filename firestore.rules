@@ -11,34 +11,24 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.admin == true;
     }
 
-    // Publicly readable, admin-writable
-    match /alerts/{id} {
+    // Publicly readable, admin writable
+    match /alerts/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    match /alerts {
-      allow list: if true;
-    }
 
-    match /routes/{id} {
+    match /routes/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    match /routes {
-      allow list: if true;
-    }
 
-    // Admin-only
-    match /drivers/{id} {
+    // Admin only
+    match /drivers/{docId} {
       allow read, write: if isAdmin();
     }
-    match /drivers {
-       allow list: if isAdmin();
-    }
 
-    // Deny everything else by default
-    // We keep the user rule to allow users to manage their own data
-     match /users/{userId}/{document=**} {
+    // Users can manage their own subdocs if you need that path
+    match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }

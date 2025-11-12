@@ -5,47 +5,57 @@ import type { Route, Driver, Alert } from '@/lib/definitions';
 import { DashboardClient } from '@/components/admin/DashboardClient';
 import { getClientRoutes, getDrivers, getAlerts } from '@/lib/data-service-client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { app } from '@/lib/firebase/client';
 import { useAuth } from '@/hooks/use-auth';
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
-  const [data, setData] = useState<{ routes: Route[], drivers: Driver[], alerts: Alert[] } | null>(null);
+  const [routes, setRoutes] = useState<Route[] | null>(null);
+  const [alerts, setAlerts] = useState<Alert[] | null>(null);
+  const [drivers, setDrivers] = useState<Driver[] | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function getDashboardData() {
-      // Only fetch data if the user is authenticated
-      if (!authLoading && user) {
-        try {
-          setLoading(true);
-          const routesPromise = getClientRoutes();
-          const driversPromise = getDrivers();
-          const alertsPromise = getAlerts();
+    if (authLoading) return;
 
-          const [routes, drivers, alerts] = await Promise.all([
-            routesPromise,
-            driversPromise,
-            alertsPromise,
-          ]);
-          
-          setData({ routes, drivers, alerts });
-        } catch (error) {
-          console.error("Failed to fetch dashboard data:", error);
-          setData({ routes: [], drivers: [], alerts: [] });
-        } finally {
-          setLoading(false);
+    const auth = getAuth(app);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      try {
+        // Always try public data
+        const [routesData, alertsData] = await Promise.all([
+          getClientRoutes().catch(() => []),
+          getAlerts().catch(() => []),
+        ]);
+        setRoutes(routesData);
+        setAlerts(alertsData);
+
+        // If signed in, check claim and conditionally load drivers
+        if (user) {
+          const token = await user.getIdTokenResult(true);
+          const adminFlag = token.claims?.admin === true;
+          setIsAdmin(adminFlag);
+
+          if (adminFlag) {
+            const driversData = await getDrivers().catch(() => []);
+            setDrivers(driversData);
+          } else {
+            setDrivers([]); // not admin → show empty drivers list (or hide UI)
+          }
+        } else {
+          setDrivers([]); // signed out → no drivers
         }
-      } else if (!authLoading && !user) {
-        // If not authenticated, stop loading but don't fetch
+      } finally {
         setLoading(false);
       }
-    }
-    getDashboardData();
-  }, [user, authLoading]);
+    });
 
+    return () => unsub();
+  }, [authLoading]);
 
-  if (authLoading || (loading && user)) {
-    return (
+  if (loading || authLoading || routes === null || alerts === null || drivers === null) {
+     return (
       <div className="container py-8">
         <Skeleton className="h-8 w-1/3 mb-6" />
         <div className="grid grid-cols-3 gap-1 h-10 mb-6">
@@ -57,12 +67,17 @@ export default function AdminDashboardPage() {
       </div>
     );
   }
-  
+
+  // AuthGuard will handle redirection if not signed in at all
   if (!user) {
-      // AuthGuard should handle this, but as a fallback.
-      return null;
+    return null;
   }
 
-  // data will be non-null here because we've waited for loading to finish
-  return <DashboardClient routes={data!.routes} drivers={data!.drivers} alerts={data!.alerts} />;
+  return (
+    <DashboardClient
+      routes={routes}
+      alerts={alerts}
+      drivers={drivers}
+    />
+  );
 }

@@ -21,13 +21,18 @@ async function handleFirestoreAction(action: () => Promise<any>, revalidate: str
 
 // --- File Upload Action ---
 export async function uploadFile(formData: FormData, folder: string) {
-  const file = formData.get('file') as File;
-  if (!file) {
-    return { success: false, error: 'No file provided.' };
-  }
-
   try {
-    const bucket = adminStorage.bucket();
+    const file = formData.get('file') as File;
+    if (!file) {
+      return { success: false, error: 'No file provided.' };
+    }
+
+    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+    if (!bucketName) {
+      throw new Error("Firebase Storage bucket name is not configured. Check NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET environment variable.");
+    }
+    const bucket = adminStorage.bucket(bucketName);
+    
     const filename = `${folder}/${uuidv4()}-${slugify(file.name)}`;
     const fileRef = bucket.file(filename);
 

@@ -1,38 +1,44 @@
 rules_version = '2';
 
 service cloud.firestore {
-  match /databases/{database}/documents {
+  match /databases/{db}/documents {
 
-    // --- Public Collections: Allow public read, authenticated write ---
-    match /routes/{routeId} {
-      allow get: if true;
-      allow write: if request.auth != null;
+    function isSignedIn() {
+      return request.auth != null;
     }
-    
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // Publicly readable, admin-writable
+    match /alerts/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /alerts {
+      allow list: if true;
+    }
+
+    match /routes/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
     match /routes {
       allow list: if true;
     }
 
-    match /alerts/{alertId} {
-      allow get: if true;
-      allow write: if request.auth != null;
+    // Admin-only
+    match /drivers/{id} {
+      allow read, write: if isAdmin();
     }
-    
-    match /alerts {
-      allow list: if true;
-    }
-    
-    // --- Admin-Only Collections: Allow authenticated read/write ---
-    match /drivers/{driverId} {
-      allow read, write: if request.auth != null;
+    match /drivers {
+       allow list: if isAdmin();
     }
 
-    match /drivers {
-       allow list: if request.auth != null;
-    }
-    
-    // --- User-Specific Data ---
-    match /users/{userId}/{document=**} {
+    // Deny everything else by default
+    // We keep the user rule to allow users to manage their own data
+     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }

@@ -6,6 +6,7 @@ import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { auth } from './client';
 import type { User } from '@/lib/definitions';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getApp } from 'firebase/app';
 
 interface AuthContextType {
   user: User | null;
@@ -22,10 +23,16 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+    const app = getApp();
+    console.log("Firebase projectId:", app.options.projectId);
+    
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      console.log("Signed in?", !!firebaseUser, "uid:", firebaseUser?.uid);
       if (firebaseUser) {
         const { uid, email, displayName } = firebaseUser;
         setUser({ uid, email, displayName });
+        const token = await firebaseUser.getIdTokenResult(true);
+        console.log("Custom claims:", token.claims);
       } else {
         setUser(null);
       }

@@ -40,8 +40,8 @@ export async function uploadFile(formData: FormData, folder: string) {
     const buffer = Buffer.from(bytes);
 
     await fileRef.save(buffer, {
-      contentType: file.type,
-      public: true, // Make the file public on upload
+      contentType: file.type, // Explicitly set the content type
+      public: true, // Make the file public
     });
     
     const publicUrl = fileRef.publicUrl();

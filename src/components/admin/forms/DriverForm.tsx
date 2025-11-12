@@ -41,21 +41,13 @@ interface DriverFormProps {
 export function DriverForm({ initialData, routes, onSubmit, isLoading, onClose }: DriverFormProps) {
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverSchema),
-    defaultValues: initialData
-      ? {
-          nombre: initialData.nombre,
-          busPlate: initialData.busPlate || '',
-          routeId: initialData.routeId || '',
-          status: initialData.status || '',
-          comment: initialData.comment || '',
-        }
-      : {
-          nombre: '',
-          busPlate: '',
-          routeId: '',
-          status: 'Activo',
-          comment: '',
-        },
+    defaultValues: {
+      nombre: initialData?.nombre || '',
+      busPlate: initialData?.busPlate || '',
+      routeId: initialData?.routeId || NONE,
+      status: initialData?.status || 'Activo',
+      comment: initialData?.comment || '',
+    },
   });
 
   return (

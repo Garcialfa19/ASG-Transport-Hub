@@ -41,10 +41,10 @@ export default function AdminDashboardPage() {
             const driversData = await getDrivers().catch(() => []);
             setDrivers(driversData);
           } else {
-            setDrivers([]); // not admin → show empty drivers list (or hide UI)
+            setDrivers([]); // not admin -> show empty drivers list
           }
         } else {
-          setDrivers([]); // signed out → no drivers
+          setDrivers([]); // signed out -> no drivers
         }
       } finally {
         setLoading(false);

@@ -1,11 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { adminDb } from './firebase/admin';
+import { adminDb, adminStorage } from './firebase/admin';
 import { slugify } from './utils';
 import type { Route, Driver, Alert } from './definitions';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 // --- Generic Error Handling ---
 async function handleFirestoreAction(action: () => Promise<any>, revalidate: string) {
@@ -28,20 +27,20 @@ export async function uploadFile(formData: FormData, folder: string) {
   }
 
   try {
+    const bucket = adminStorage.bucket();
+    const filename = `${folder}/${uuidv4()}-${slugify(file.name)}`;
+    const fileRef = bucket.file(filename);
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Use a timestamp and slugified name to create a unique filename
-    const filename = `${Date.now()}-${slugify(file.name)}`;
-    const path = join(process.cwd(), 'public', 'uploads', folder, filename);
+    await fileRef.save(buffer, {
+      contentType: file.type,
+      public: true,
+    });
     
-    // IMPORTANT: Writing to the local filesystem is not suitable for most production serverless environments (like Vercel or Firebase App Hosting).
-    // The 'public' directory is only available at build time. For a production app,
-    // you should use a cloud storage service like Firebase Storage.
-    // This implementation is for local development demonstration as per the prompt.
-    await writeFile(path, buffer);
+    const publicUrl = fileRef.publicUrl();
 
-    const publicUrl = `/uploads/${folder}/${filename}`;
     return { success: true, data: publicUrl };
 
   } catch (error) {
@@ -51,17 +50,19 @@ export async function uploadFile(formData: FormData, folder: string) {
   }
 }
 
+
 // --- Route Actions ---
 type RouteData = Omit<Route, 'id' | 'lastUpdated'>;
 
 export async function addRoute(data: RouteData) {
   const id = slugify(`${data.nombre} ${data.especificacion}`);
   return handleFirestoreAction(async () => {
-    await adminDb.collection('routes').doc(id).set({
+    const newRoute = {
       ...data,
       lastUpdated: new Date().toISOString(),
-    });
-    return id;
+    };
+    await adminDb.collection('routes').doc(id).set(newRoute);
+    return { ...newRoute, id };
   }, '/admin/dashboard');
 }
 

@@ -71,11 +71,6 @@ export function RouteForm({ initialData, onSubmit, isLoading, onClose }: RouteFo
     const result = await uploadFile(formData, 'route-images');
     
     if (result.success && result.data) {
-      // In a real app, result.data would be a full URL from a storage service.
-      // Here, we use a placeholder ID to find the image in placeholder-images.json
-      // For a more robust solution, you'd save the URL directly.
-      // This is a workaround for the prompt's constraints.
-      // We will save the path returned by the server action.
       form.setValue(field, result.data);
       toast({ title: 'Éxito', description: 'Imagen subida correctamente.' });
     } else {

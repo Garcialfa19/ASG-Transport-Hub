@@ -19,7 +19,6 @@ import { addRoute, updateRoute, deleteRoute } from '@/lib/actions';
 import { RouteForm } from './forms/RouteForm';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/badge';
-import { slugify } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface RouteManagerProps {
@@ -45,11 +44,7 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
           prev.map((r) => (r.id === editingRoute.id ? { ...r, ...data, lastUpdated: new Date().toISOString() } : r))
         );
       } else {
-        const newRoute: Route = {
-            id: slugify(`${data.nombre} ${data.especificacion}`),
-            ...data,
-            lastUpdated: new Date().toISOString()
-        }
+        const newRoute = result.data as Route;
         setRoutes(prev => [newRoute, ...prev]);
       }
       toast({ title: 'Éxito', description: `Ruta ${editingRoute ? 'actualizada' : 'creada'} correctamente.` });
@@ -83,12 +78,16 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
   };
 
   const getImageUrl = (imagePath?: string) => {
-    if (!imagePath) return PlaceHolderImages.find(p => p.id === 'route-grecia-centro')?.imageUrl || '/default-image.png';
-    // Check if it's a full URL or a path from our public folder
-    if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/uploads')) return imagePath;
-    // Fallback for placeholder IDs
-    return PlaceHolderImages.find(p => p.id === imagePath)?.imageUrl || imagePath;
+    const defaultImage = PlaceHolderImages.find(p => p.id === 'route-grecia-centro')?.imageUrl || '/default-image.png';
+    if (!imagePath) return defaultImage;
+    
+    // Check if it's a full Firebase Storage URL
+    if (imagePath.startsWith('https://storage.googleapis.com')) {
+      return imagePath;
+    }
+    
+    // Fallback for placeholder IDs from placeholder-images.json
+    return PlaceHolderImages.find(p => p.id === imagePath)?.imageUrl || defaultImage;
   }
 
   return (

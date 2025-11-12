@@ -111,6 +111,6 @@ export async function deleteDocument(collectionName: string, id: string) {
 }
 
 // Specific functions
-export const getRoutes = () => getCollection<Route>('routes', {field: 'nombre', direction: 'asc'});
+export const getClientRoutes = () => getCollection<Route>('routes', {field: 'nombre', direction: 'asc'});
 export const getAlerts = () => getCollection<Alert>('alerts', {field: 'lastUpdated', direction: 'desc'});
 export const getDrivers = () => getCollection<Driver>('drivers', {field: 'nombre', direction: 'asc'});

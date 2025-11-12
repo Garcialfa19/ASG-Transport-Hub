@@ -21,28 +21,26 @@ async function handleFirestoreAction(action: () => Promise<any>, revalidate: str
 
 // --- File Upload Action ---
 export async function uploadFile(formData: FormData, folder: string) {
-  try {
+    try {
     const file = formData.get('file') as File | null;
     if (!file) return { success: false, error: 'No file provided.' };
 
     const bucket = adminStorage().bucket();
-    const filename = `${folder}/${uuidv4()}-${file.name.replace(/\s+/g, '-').toLowerCase()}`;
+    const filename = `${folder}/${uuidv4()}-${file.name.replace(/\s+/g, '-')}`;
     const fileRef = bucket.file(filename);
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const token = uuidv4();
-
+    
     await fileRef.save(buffer, {
-      contentType: file.type || 'application/octet-stream',
+      contentType: file.type,
+      public: true,
       metadata: {
-        metadata: { firebaseStorageDownloadTokens: token },
+        cacheControl: 'public, max-age=31536000',
       },
     });
 
-    const publicUrl =
-      `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/` +
-      `${encodeURIComponent(filename)}?alt=media&token=${token}`;
-
+    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+    
     return { success: true, data: publicUrl };
   } catch (error: any) {
     console.error('uploadFile error:', {
@@ -70,6 +68,7 @@ export async function addRoute(data: Partial<RouteData>) {
 
     await adminDb().collection('routes').doc(id).set(routeDoc, { merge: false });
     revalidatePath('/admin/dashboard');
+    revalidatePath('/');
 
     return { success: true, data: routeDoc };
   } catch (error: any) {
@@ -89,6 +88,7 @@ export async function updateRoute(id: string, data: Partial<RouteData>) {
       lastUpdated: new Date().toISOString(),
     });
     revalidatePath('/admin/dashboard');
+    revalidatePath('/');
     return { success: true, data: { id, ...data } };
   } catch (error: any) {
     console.error('updateRoute error:', {
@@ -101,10 +101,22 @@ export async function updateRoute(id: string, data: Partial<RouteData>) {
 }
 
 export async function deleteRoute(id: string) {
-  return handleFirestoreAction(() =>
+  const result = await handleFirestoreAction(() =>
     adminDb().collection('routes').doc(id).delete(),
     '/admin/dashboard'
   );
+   if (result.success) {
+    revalidatePath('/');
+  }
+  return result;
+}
+
+export async function getRoutes(): Promise<Route[]> {
+  const snapshot = await adminDb().collection('routes').orderBy('nombre', 'asc').get();
+  if (snapshot.empty) {
+    return [];
+  }
+  return snapshot.docs.map(doc => doc.data() as Route);
 }
 
 
@@ -148,13 +160,18 @@ export async function addAlert(data: AlertData) {
       ...data,
       lastUpdated: new Date().toISOString(),
     });
+    revalidatePath('/');
     return docRef.id;
   }, '/admin/dashboard');
 }
 
 export async function deleteAlert(id: string) {
-  return handleFirestoreAction(() =>
+  const result = await handleFirestoreAction(() =>
     adminDb().collection('alerts').doc(id).delete(),
     '/admin/dashboard'
   );
+  if (result.success) {
+    revalidatePath('/');
+  }
+  return result;
 }

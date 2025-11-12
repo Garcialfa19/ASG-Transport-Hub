@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Route, Driver, Alert } from '@/lib/definitions';
 import { DashboardClient } from '@/components/admin/DashboardClient';
-import { getRoutes, getDrivers, getAlerts } from '@/lib/data-service-client';
+import { getClientRoutes, getDrivers, getAlerts } from '@/lib/data-service-client';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminDashboardPage() {
@@ -14,7 +14,7 @@ export default function AdminDashboardPage() {
     async function getDashboardData() {
       try {
         setLoading(true);
-        const routesPromise = getRoutes();
+        const routesPromise = getClientRoutes();
         const driversPromise = getDrivers();
         const alertsPromise = getAlerts();
 

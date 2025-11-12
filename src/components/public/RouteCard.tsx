@@ -1,92 +1,51 @@
 'use client';
-
 import Image from 'next/image';
-import { Clock, Tag, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import type { Route } from '@/lib/definitions';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Badge } from '../ui/badge';
+import { Clock, DollarSign, MapPin } from 'lucide-react';
 
-interface RouteCardProps {
-  route: Route;
-}
-
-export function RouteCard({ route }: RouteCardProps) {
-  const getImageUrl = (imagePath?: string) => {
-    const defaultImage = PlaceHolderImages.find(p => p.id === 'route-grecia-centro')?.imageUrl || '/default-image.png';
-    return imagePath || defaultImage;
-  }
-  
-  const getScheduleImageUrl = (imagePath?: string) => {
-    const defaultImage = PlaceHolderImages.find(p => p.id === 'schedule-placeholder')?.imageUrl || '/default-schedule.png';
-    return imagePath || defaultImage;
-  }
+export default function RouteCard({ nombre, duracionMin, costo, origen, destino, imagenUrl }: {
+  nombre: string;
+  duracionMin?: number;
+  costo?: number;
+  origen?: string;
+  destino?: string;
+  imagenUrl?: string;
+}) {
+  const duracion =
+    duracionMin ? `${Math.floor(duracionMin / 60)}h ${duracionMin % 60}m` : '—';
+  const costoFmt =
+    typeof costo === 'number'
+      ? new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', maximumFractionDigits: 0 }).format(costo)
+      : '—';
 
   return (
-    <Card className="overflow-hidden flex flex-col">
-      <div className="relative h-40 w-full">
-        <Image
-          src={getImageUrl(route.imagenTarjetaUrl)}
-          alt={route.nombre}
-          fill
-          className="object-cover"
-        />
+    <div className="rounded-xl border bg-white shadow hover:shadow-lg transition overflow-hidden">
+      {imagenUrl ? (
+        <div className="relative h-40 w-full">
+          <Image src={imagenUrl} alt={nombre} fill className="object-cover" />
+        </div>
+      ) : (
+        <div className="flex h-40 items-center justify-center bg-gray-100 text-gray-500">
+          <MapPin className="h-5 w-5 mr-2" />
+          <span>{origen && destino ? `${origen} → ${destino}` : 'Ruta'}</span>
+        </div>
+      )}
+
+      <div className="p-4">
+        <h3 className="text-lg font-semibold line-clamp-1">{nombre}</h3>
+        <div className="mt-2 flex justify-between text-sm text-gray-600">
+          <span className="flex items-center gap-1">
+            <Clock className="h-4 w-4" /> {duracion}
+          </span>
+          <span className="flex items-center gap-1">
+            <DollarSign className="h-4 w-4" /> {costoFmt}
+          </span>
+        </div>
+        {(origen || destino) && (
+          <p className="mt-2 text-xs text-gray-500">
+            {origen && destino ? `${origen} → ${destino}` : origen ?? destino}
+          </p>
+        )}
       </div>
-      <CardHeader>
-        <CardTitle>{route.nombre}</CardTitle>
-        {route.especificacion && <p className="text-sm text-muted-foreground">{route.especificacion}</p>}
-      </CardHeader>
-      <CardContent className="flex-1 space-y-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>Duración: {route.duracionMin} min</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Tag className="h-4 w-4" />
-           <span>Tarifa: ₡{route.tarifaCRC.toLocaleString('es-CR')}</span>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-full">
-                <Eye className="mr-2 h-4 w-4" />
-                Ver Horario
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Horario de: {route.nombre}</DialogTitle>
-              <DialogDescription>
-                Este es el horario programado para esta ruta. Los horarios pueden estar sujetos a cambios.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="relative mt-4" style={{ paddingBottom: '70.75%' }}>
-              <Image
-                src={getScheduleImageUrl(route.imagenHorarioUrl)}
-                alt={`Horario de ${route.nombre}`}
-                fill
-                className="object-contain"
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
-      </CardFooter>
-    </Card>
+    </div>
   );
 }

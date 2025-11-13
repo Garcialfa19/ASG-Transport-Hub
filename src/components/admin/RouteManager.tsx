@@ -78,16 +78,11 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
   };
 
   const getImageUrl = (imagePath?: string) => {
-    const defaultImage = PlaceHolderImages.find(p => p.id === 'route-grecia-centro')?.imageUrl || '/default-image.png';
-    if (!imagePath) return defaultImage;
-    
-    // Check if it's a full Firebase Storage URL
-    if (imagePath.startsWith('https://storage.googleapis.com')) {
+    if (imagePath && imagePath.startsWith('https://')) {
       return imagePath;
     }
-    
-    // Fallback for placeholder IDs from placeholder-images.json
-    return PlaceHolderImages.find(p => p.id === imagePath)?.imageUrl || defaultImage;
+    const placeholder = PlaceHolderImages.find(p => p.id === imagePath);
+    return placeholder?.imageUrl || PlaceHolderImages.find(p => p.id === 'route-grecia-centro')?.imageUrl || '/default-image.png';
   }
 
   return (

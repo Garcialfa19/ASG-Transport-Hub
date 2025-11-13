@@ -22,35 +22,42 @@ export function DashboardPageClient({
 }: DashboardPageClientProps) {
   const { user, loading: authLoading } = useAuth();
   const { firestore } = useFirebase();
+  const readyForRealtime = !!user;
 
   const routesQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !readyForRealtime) return null;
     return query(collection(firestore, 'routes'), orderBy('nombre', 'asc'));
-  }, [firestore]);
+  }, [firestore, readyForRealtime]);
 
   const alertsQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !readyForRealtime) return null;
     return query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'));
-  }, [firestore]);
+  }, [firestore, readyForRealtime]);
 
   const driversQuery = useMemo(() => {
-    if (!firestore || !user) return null;
+    if (!firestore || !readyForRealtime) return null;
     return query(collection(firestore, 'drivers'), orderBy('nombre', 'asc'));
-  }, [firestore, user]);
+  }, [firestore, readyForRealtime]);
 
   const { data: routes, loading: routesLoading } = useCollection<Route>(routesQuery, {
     initialData: initialRoutes,
+    enabled: readyForRealtime,
   });
   const { data: alerts, loading: alertsLoading } = useCollection<Alert>(alertsQuery, {
     initialData: initialAlerts,
+    enabled: readyForRealtime,
   });
   const { data: drivers, loading: driversLoading } = useCollection<Driver>(driversQuery, {
     initialData: initialDrivers,
+    enabled: readyForRealtime,
   });
 
-  const dataLoading = routesLoading || alertsLoading || driversLoading;
+  const dataLoading = readyForRealtime && (routesLoading || alertsLoading || driversLoading);
 
-  if (authLoading || (dataLoading && user && routes === null && alerts === null && drivers === null)) {
+  if (
+    authLoading ||
+    (dataLoading && readyForRealtime && routes === null && alerts === null && drivers === null)
+  ) {
     return (
       <div className="container py-8">
         <h1 className="text-3xl font-bold mb-6">Panel de Administración</h1>

@@ -23,9 +23,9 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
-    // (Optional) Lock everything else by default
+    // Allow any authenticated admin account to manage additional collections
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if isAuthenticated();
     }
   }
 }

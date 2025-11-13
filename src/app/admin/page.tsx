@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -53,11 +53,6 @@ export default function AdminLoginPage() {
       // This is the only place where I call the Firebase Auth client directly. On success the
       // auth state listener in FirebaseProvider will take care of redirecting the user.
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      const tokenResult = await auth.currentUser?.getIdTokenResult(true);
-      if (!tokenResult?.claims?.admin) {
-        await signOut(auth);
-        throw new Error('User is not an admin');
-      }
       toast({ title: 'Éxito', description: 'Inicio de sesión exitoso.' });
       router.push('/admin/dashboard');
     } catch (error) {

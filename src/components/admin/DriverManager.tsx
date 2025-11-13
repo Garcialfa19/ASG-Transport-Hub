@@ -24,9 +24,10 @@ import { Skeleton } from '../ui/skeleton';
 
 interface DriverManagerProps {
   routes: Route[];
+  isAdmin: boolean;
 }
 
-export function DriverManager({ routes }: DriverManagerProps) {
+export function DriverManager({ routes, isAdmin }: DriverManagerProps) {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -35,24 +36,26 @@ export function DriverManager({ routes }: DriverManagerProps) {
   const { toast } = useToast();
   
   useEffect(() => {
+    if (!isAdmin) {
+      setDataLoading(false);
+      return;
+    }
+    
     const fetchDrivers = async () => {
       setDataLoading(true);
       try {
         const driversData = await getDrivers();
         setDrivers(driversData);
       } catch (error) {
+        // The error is now handled by the global error emitter, 
+        // so we don't need to show a toast here.
         console.error("Failed to fetch drivers:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Error de Permisos',
-            description: 'No se pudieron cargar los datos de los choferes.',
-        });
       } finally {
         setDataLoading(false);
       }
     };
     fetchDrivers();
-  }, [toast]);
+  }, [isAdmin]);
 
   const getRouteName = (routeId?: string) => routes.find((r) => r.id === routeId)?.nombre || 'N/A';
 
@@ -63,6 +66,8 @@ export function DriverManager({ routes }: DriverManagerProps) {
       : await addDriver(data);
 
     if (result.success) {
+      // Note: For a more robust solution, we would refetch the data.
+      // For now, we optimistically update the UI.
       if (editingDriver) {
         setDrivers((prev) =>
           prev.map((d) => (d.id === editingDriver.id ? { ...d, ...data, id: editingDriver.id, lastUpdated: new Date().toISOString() } : d))
@@ -74,6 +79,7 @@ export function DriverManager({ routes }: DriverManagerProps) {
       toast({ title: 'Éxito', description: `Chofer ${editingDriver ? 'actualizado' : 'creado'} correctamente.` });
       closeForm();
     } else {
+      // Server action errors are still shown via toast. Permission errors are not server action errors.
       toast({ variant: 'destructive', title: 'Error', description: result.error });
     }
     setIsLoading(false);
@@ -110,6 +116,14 @@ export function DriverManager({ routes }: DriverManagerProps) {
               <Skeleton className="h-64 w-full" />
           </div>
       );
+  }
+
+  if (!isAdmin) {
+    return (
+       <div className="border rounded-md p-8 text-center text-muted-foreground">
+          No tiene permisos de administrador para ver esta sección.
+       </div>
+    )
   }
 
   return (

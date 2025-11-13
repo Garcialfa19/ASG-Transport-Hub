@@ -12,6 +12,7 @@ import {
   Timestamp,
   orderBy,
   query,
+  Firestore,
 } from 'firebase/firestore';
 import { firestore } from './firebase/client';
 import type { Route, Alert, Driver } from './definitions';
@@ -72,10 +73,19 @@ export async function addDocument<T extends object>(collectionName: string, data
     ...data,
     lastUpdated: Timestamp.now().toDate().toISOString(),
   };
-  const promise = addDoc(collection(firestore, collectionName), enrichedData);
+  const collRef = collection(firestore, collectionName);
   
-  const docRef = await handleFirestoreError(promise, collectionName, 'create', enrichedData);
-  return docRef.id;
+  // Do not await here, use .catch for error handling
+  addDoc(collRef, enrichedData)
+    .catch((serverError) => {
+        const permissionError = new FirestorePermissionError(
+            serverError.message,
+            collRef.path,
+            'create',
+            enrichedData
+        );
+        errorEmitter.emitPermissionError(permissionError);
+    });
 }
 
 // Generic function to set a document with a specific ID
@@ -85,9 +95,17 @@ export async function setDocument<T extends object>(collectionName: string, id: 
     lastUpdated: Timestamp.now().toDate().toISOString(),
   };
   const docRef = doc(firestore, collectionName, id);
-  const promise = setDoc(docRef, enrichedData);
   
-  await handleFirestoreError(promise, docRef.path, 'create', enrichedData);
+  setDoc(docRef, enrichedData)
+    .catch((serverError) => {
+        const permissionError = new FirestorePermissionError(
+            serverError.message,
+            docRef.path,
+            'create',
+            enrichedData
+        );
+        errorEmitter.emitPermissionError(permissionError);
+    });
 }
 
 // Generic function to update a document
@@ -97,17 +115,32 @@ export async function updateDocument<T extends object>(collectionName: string, i
     lastUpdated: Timestamp.now().toDate().toISOString(),
   };
   const docRef = doc(firestore, collectionName, id);
-  const promise = updateDoc(docRef, enrichedData);
   
-  await handleFirestoreError(promise, docRef.path, 'update', enrichedData);
+  updateDoc(docRef, enrichedData)
+    .catch((serverError) => {
+        const permissionError = new FirestorePermissionError(
+            serverError.message,
+            docRef.path,
+            'update',
+            enrichedData
+        );
+        errorEmitter.emitPermissionError(permissionError);
+    });
 }
 
 // Generic function to delete a document
 export async function deleteDocument(collectionName: string, id: string) {
   const docRef = doc(firestore, collectionName, id);
-  const promise = deleteDoc(docRef);
 
-  await handleFirestoreError(promise, docRef.path, 'delete');
+  deleteDoc(docRef)
+    .catch((serverError) => {
+        const permissionError = new FirestorePermissionError(
+            serverError.message,
+            docRef.path,
+            'delete'
+        );
+        errorEmitter.emitPermissionError(permissionError);
+    });
 }
 
 // Specific functions

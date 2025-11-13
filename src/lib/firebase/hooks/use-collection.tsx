@@ -14,7 +14,9 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
 
   useEffect(() => {
     if (!q) {
+      setData([]);
       setLoading(false);
+      setError(null);
       return;
     }
     
@@ -32,7 +34,7 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
       },
       (err) => {
         console.error("useCollection error:", err);
-        const path = (q as any).path;
+        const path = (q as any)._query?.path?.segments?.join('/') || 'unknown path';
         if (err.code === 'permission-denied') {
             const permissionError = new FirestorePermissionError(
               err.message,

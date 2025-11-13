@@ -9,56 +9,52 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface FirebaseContextType {
   user: FirebaseUser | null;
-  loading: boolean;
-  firestore: Firestore | null;
+  loading: boolean;           // tracks only auth loading
+  firestore: Firestore;       // available immediately
 }
 
 export const FirebaseContext = createContext<FirebaseContextType>({
   user: null,
   loading: true,
-  firestore: null,
+  firestore: fsClient,
 });
 
 export function FirebaseProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [firestore, setFirestore] = useState<Firestore | null>(null);
+
+  // Firestore is ready immediately; do NOT wait for auth.
+  const firestore = fsClient;
 
   useEffect(() => {
-    // Set the firestore instance
-    setFirestore(fsClient);
-    
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-      setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u ?? null);
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
-  const value = { user, loading, firestore };
-
   return (
-    <FirebaseContext.Provider value={value}>
+    <FirebaseContext.Provider value={{ user, loading, firestore }}>
       {loading ? (
-        <div className="flex h-screen w-screen items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-[250px]" />
-                    <Skeleton className="h-4 w-[200px]" />
-                </div>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
             </div>
+          </div>
         </div>
-      ) : children}
+      ) : (
+        children
+      )}
     </FirebaseContext.Provider>
   );
 }
 
 export const useFirebase = () => {
-    const context = useContext(FirebaseContext);
-    if (context === undefined) {
-        throw new Error('useFirebase must be used within a FirebaseProvider');
-    }
-    return context;
-}
+  const ctx = useContext(FirebaseContext);
+  if (ctx === undefined) throw new Error('useFirebase must be used within a FirebaseProvider');
+  return ctx;
+};

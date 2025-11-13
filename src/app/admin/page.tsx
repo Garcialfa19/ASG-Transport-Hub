@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
   
   if (authLoading || user) {
     return (
-       <div className="flex h-screen w-screen items-center justify-center">
+       <div className="flex min-h-screen items-center justify-center">
             <div className="flex flex-col items-center gap-4">
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <div className="space-y-2">

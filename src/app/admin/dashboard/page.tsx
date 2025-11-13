@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { Route, Driver, Alert } from '@/lib/definitions';
+import type { Route, Alert } from '@/lib/definitions';
 import { DashboardClient } from '@/components/admin/DashboardClient';
-import { getClientRoutes, getDrivers, getAlerts } from '@/lib/data-service-client';
+import { getClientRoutes, getAlerts } from '@/lib/data-service-client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -11,13 +11,12 @@ export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const [routes, setRoutes] = useState<Route[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    // We need the user object to exist before we do anything.
     if (authLoading) {
-      // Wait for the authentication state to be resolved first.
       return;
     }
 
@@ -39,24 +38,11 @@ export default function AdminDashboardPage() {
           const tokenResult = await user.getIdTokenResult(true); // Force refresh
           const userIsAdmin = tokenResult.claims.admin === true;
           setIsAdmin(userIsAdmin);
-
-          if (userIsAdmin) {
-            // 3. If user is an admin, fetch admin-only data.
-            const driversData = await getDrivers().catch(() => []);
-            setDrivers(driversData);
-          } else {
-            // If not an admin, ensure drivers list is empty.
-            setDrivers([]);
-          }
         } else {
-          // If no user, ensure drivers list is empty.
-          setDrivers([]);
           setIsAdmin(false);
         }
       } catch (error) {
         console.error("An error occurred during data fetching:", error);
-        // Reset state in case of a critical error
-        setDrivers([]);
         setIsAdmin(false);
       } finally {
         setDataLoading(false);
@@ -83,17 +69,11 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // AuthGuard should prevent this, but as a fallback, don't render if no user.
-  if (!user) {
-    return null;
-  }
-
   return (
     <DashboardClient
       routes={routes}
       alerts={alerts}
-      // Pass an empty array for drivers if the user is not an admin
-      drivers={isAdmin ? drivers : []}
+      isAdmin={isAdmin}
     />
   );
 }

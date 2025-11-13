@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -16,21 +16,43 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from '@/hooks/use-toast';
 import type { Driver, Route } from '@/lib/definitions';
 import { addDriver, updateDriver, deleteDriver } from '@/lib/actions';
+import { getDrivers } from '@/lib/data-service-client';
 import { DriverForm } from './forms/DriverForm';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '../ui/skeleton';
 
 interface DriverManagerProps {
-  initialDrivers: Driver[];
   routes: Route[];
 }
 
-export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
-  const [drivers, setDrivers] = useState(initialDrivers);
+export function DriverManager({ routes }: DriverManagerProps) {
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      setDataLoading(true);
+      try {
+        const driversData = await getDrivers();
+        setDrivers(driversData);
+      } catch (error) {
+        console.error("Failed to fetch drivers:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error de Permisos',
+            description: 'No se pudieron cargar los datos de los choferes.',
+        });
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    fetchDrivers();
+  }, [toast]);
 
   const getRouteName = (routeId?: string) => routes.find((r) => r.id === routeId)?.nombre || 'N/A';
 
@@ -43,7 +65,7 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
     if (result.success) {
       if (editingDriver) {
         setDrivers((prev) =>
-          prev.map((d) => (d.id === editingDriver.id ? { ...d, ...data, lastUpdated: new Date().toISOString() } : d))
+          prev.map((d) => (d.id === editingDriver.id ? { ...d, ...data, id: editingDriver.id, lastUpdated: new Date().toISOString() } : d))
         );
       } else {
          const newDriver = { ...data, id: result.data, lastUpdated: new Date().toISOString() };
@@ -78,6 +100,17 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
     setEditingDriver(null);
     setIsFormOpen(false);
   };
+  
+  if (dataLoading) {
+      return (
+          <div className="space-y-4">
+              <div className="flex justify-end mb-4">
+                  <Skeleton className="h-10 w-36" />
+              </div>
+              <Skeleton className="h-64 w-full" />
+          </div>
+      );
+  }
 
   return (
     <div>

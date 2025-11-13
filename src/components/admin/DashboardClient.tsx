@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { LogOut, Bus, User, Bell } from 'lucide-react';
-import type { Route, Driver, Alert } from '@/lib/definitions';
+import type { Route, Alert } from '@/lib/definitions';
 import { RouteManager } from './RouteManager';
 import { DriverManager } from './DriverManager';
 import { AlertManager } from './AlertManager';
@@ -15,11 +15,11 @@ import { Logo } from '../shared/Logo';
 
 interface DashboardClientProps {
   routes: Route[];
-  drivers: Driver[];
   alerts: Alert[];
+  isAdmin: boolean;
 }
 
-export function DashboardClient({ routes, drivers, alerts }: DashboardClientProps) {
+export function DashboardClient({ routes, alerts, isAdmin }: DashboardClientProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -49,14 +49,18 @@ export function DashboardClient({ routes, drivers, alerts }: DashboardClientProp
         <Tabs defaultValue="routes" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="routes"><Bus className="mr-2 h-4 w-4" /> Rutas</TabsTrigger>
-            <TabsTrigger value="drivers"><User className="mr-2 h-4 w-4" /> Choferes</TabsTrigger>
+            <TabsTrigger value="drivers" disabled={!isAdmin}><User className="mr-2 h-4 w-4" /> Choferes</TabsTrigger>
             <TabsTrigger value="alerts"><Bell className="mr-2 h-4 w-4" /> Alertas</TabsTrigger>
           </TabsList>
           <TabsContent value="routes" className="mt-6">
             <RouteManager initialRoutes={routes} />
           </TabsContent>
           <TabsContent value="drivers" className="mt-6">
-            <DriverManager initialDrivers={drivers} routes={routes} />
+            {isAdmin ? (
+              <DriverManager routes={routes} />
+            ) : (
+              <p>No tiene permisos para ver esta sección.</p>
+            )}
           </TabsContent>
           <TabsContent value="alerts" className="mt-6">
             <AlertManager initialAlerts={alerts} />

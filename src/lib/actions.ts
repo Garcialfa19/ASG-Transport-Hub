@@ -96,7 +96,13 @@ export async function addRoute(data: Partial<RouteData>) {
     revalidatePath('/admin/dashboard');
     revalidatePath('/');
 
-    return { success: true, data: routeDoc };
+    // Return a serializable object to the client
+    const serializableRoute = {
+      ...routeDoc,
+      lastUpdated: new Date().toISOString(),
+    } as Route;
+
+    return { success: true, data: serializableRoute };
   } catch (error: any) {
     console.error('addRoute error:', {
       code: error?.code,
@@ -146,11 +152,18 @@ export async function getRoutes(): Promise<Route[]> {
     return [];
   }
   return snapshot.docs.map((doc) => {
-    const data = doc.data() as Route;
+    const data = doc.data();
     return {
-      ...data,
-      lastUpdated: serializeTimestamp((data as any).lastUpdated),
-    };
+      id: doc.id,
+      nombre: data.nombre,
+      especificacion: data.especificacion,
+      category: data.category,
+      duracionMin: data.duracionMin,
+      tarifaCRC: data.tarifaCRC,
+      imagenHorarioUrl: data.imagenHorarioUrl,
+      imagenTarjetaUrl: data.imagenTarjetaUrl,
+      lastUpdated: serializeTimestamp(data.lastUpdated),
+    } as Route;
   });
 }
 
@@ -221,11 +234,12 @@ export async function getAlerts(): Promise<Alert[]> {
   }
 
   return snapshot.docs.map((doc) => {
-    const data = doc.data() as Alert;
+    const data = doc.data();
     return {
-      ...data,
-      lastUpdated: serializeTimestamp((data as any).lastUpdated),
-    };
+      id: doc.id,
+      titulo: data.titulo,
+      lastUpdated: serializeTimestamp(data.lastUpdated),
+    } as Alert;
   });
 }
 
@@ -236,10 +250,15 @@ export async function getDrivers(): Promise<Driver[]> {
   }
 
   return snapshot.docs.map((doc) => {
-    const data = doc.data() as Driver;
+    const data = doc.data();
     return {
-      ...data,
-      lastUpdated: serializeTimestamp((data as any).lastUpdated),
-    };
+      id: doc.id,
+      nombre: data.nombre,
+      busPlate: data.busPlate,
+      routeId: data.routeId,
+      status: data.status,
+      comment: data.comment,
+      lastUpdated: serializeTimestamp(data.lastUpdated),
+    } as Driver;
   });
 }

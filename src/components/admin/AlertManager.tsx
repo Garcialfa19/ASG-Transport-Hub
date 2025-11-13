@@ -33,7 +33,7 @@ export function AlertManager({ initialAlerts }: AlertManagerProps) {
     setIsLoading(true);
     const result = await addAlert(data);
     if (result.success) {
-      // Optimistically add to UI, or refetch
+      // I prepend new alerts so the dashboard matches the descending sort in Firestore.
       const newAlert = { ...data, id: result.data, lastUpdated: new Date().toISOString() };
       setAlerts((prev) => [newAlert, ...prev]);
       toast({ title: 'Éxito', description: 'Alerta creada correctamente.' });
@@ -48,6 +48,7 @@ export function AlertManager({ initialAlerts }: AlertManagerProps) {
     setIsLoading(true);
     const result = await deleteAlert(id);
     if (result.success) {
+      // I immediately drop the alert locally so the table reflects the change before the listener fires.
       setAlerts((prev) => prev.filter((alert) => alert.id !== id));
       toast({ title: 'Éxito', description: 'Alerta eliminada correctamente.' });
     } else {
@@ -79,19 +80,19 @@ export function AlertManager({ initialAlerts }: AlertManagerProps) {
                 <TableCell className="font-medium">{alert.titulo}</TableCell>
                 <TableCell>{format(new Date(alert.lastUpdated), "dd/MM/yyyy HH:mm")}</TableCell>
                 <TableCell className="text-right">
-                    <DeleteConfirmationDialog
-                        onConfirm={() => handleDeleteAlert(alert.id)}
-                        isLoading={isLoading}
-                        itemName={alert.titulo}
-                    >
-                        <Button variant="ghost" size="icon" disabled={isLoading}>
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                  <DeleteConfirmationDialog
+                    onConfirm={() => handleDeleteAlert(alert.id)}
+                    isLoading={isLoading}
+                    itemName={alert.titulo}
+                  >
+                    <Button variant="ghost" size="icon" disabled={isLoading}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </DeleteConfirmationDialog>
                 </TableCell>
               </TableRow>
             ))}
-             {(!alerts || alerts.length === 0) && (
+            {(!alerts || alerts.length === 0) && (
               <TableRow>
                 <TableCell colSpan={3} className="h-24 text-center">
                   No hay alertas para mostrar.
@@ -106,7 +107,7 @@ export function AlertManager({ initialAlerts }: AlertManagerProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Agregar Nueva Alerta</DialogTitle>
-             <DialogDescription>
+            <DialogDescription>
               Cree una nueva alerta de servicio que se mostrará públicamente en la página de Alertas.
             </DialogDescription>
           </DialogHeader>

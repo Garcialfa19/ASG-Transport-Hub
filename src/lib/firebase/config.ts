@@ -1,6 +1,5 @@
-// This file contains the Firebase configuration for the client-side app.
-// It's important to keep this information secure.
-// For production, it's recommended to use environment variables.
+// I keep the Firebase client config here for local development. Before deploying I swap these out
+// for environment variables so the keys never ship in the bundle.
 
 export const firebaseConfig = {
   apiKey: "AIzaSyATbBz6P8wZTcyg3g0FzlR_g223rD_K2cg",

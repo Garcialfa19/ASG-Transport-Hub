@@ -1,12 +1,14 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { adminDb, adminStorage, adminFieldValue } from './firebase/admin';
+import { adminDb, adminStorage } from './firebase/admin';
 import { slugify } from './utils';
 import type { Route, Driver, Alert } from './definitions';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Generic Error Handling ---
+// I route all Firestore mutations through this helper so revalidation and error formatting stay
+// consistent across the dashboard.
 async function handleFirestoreAction(action: () => Promise<any>, revalidate: string) {
   try {
     const result = await action();
@@ -20,6 +22,8 @@ async function handleFirestoreAction(action: () => Promise<any>, revalidate: str
 }
 
 // --- File Upload Action ---
+// Uploading from a server action keeps my service account credentials off the client and lets me
+// generate publicly cacheable URLs in one shot.
 export async function uploadFile(formData: FormData, folder: string) {
     try {
     const file = formData.get('file') as File | null;
@@ -57,6 +61,8 @@ type RouteData = Omit<Route, 'id' | 'lastUpdated'>;
 
 export async function addRoute(data: Partial<RouteData>) {
   try {
+    // I prefer deterministic IDs so I can reference routes in other collections without
+    // additional lookups.
     const id = slugify(`${data.nombre} ${data.especificacion || ''}`) || uuidv4();
     const now = new Date().toISOString();
 
@@ -106,6 +112,8 @@ export async function deleteRoute(id: string) {
     '/admin/dashboard'
   );
    if (result.success) {
+    // Removing a route affects both the admin list and the passenger homepage, so I manually
+    // invalidate the public path as well.
     revalidatePath('/');
   }
   return result;
@@ -124,6 +132,7 @@ export async function getRoutes(): Promise<Route[]> {
 type DriverData = Omit<Driver, 'id' | 'lastUpdated'>;
 
 export async function addDriver(data: DriverData) {
+  // Drivers are lightweight so I let Firestore generate the ID and only return it to the client.
   return handleFirestoreAction(async () => {
     const docRef = await adminDb().collection('drivers').add({
       ...data,
@@ -155,6 +164,7 @@ export async function deleteDriver(id: string) {
 type AlertData = Omit<Alert, 'id' | 'lastUpdated'>;
 
 export async function addAlert(data: AlertData) {
+  // Alerts are tiny, so I create them ad-hoc and revalidate the landing page immediately.
   return handleFirestoreAction(async () => {
     const docRef = await adminDb().collection('alerts').add({
       ...data,
@@ -171,6 +181,7 @@ export async function deleteAlert(id: string) {
     '/admin/dashboard'
   );
   if (result.success) {
+    // Alerts also power the hero banner on the passenger site so I invalidate the root path.
     revalidatePath('/');
   }
   return result;

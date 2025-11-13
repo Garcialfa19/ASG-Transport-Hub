@@ -18,7 +18,6 @@ import { addDriver, updateDriver, deleteDriver } from '@/lib/actions';
 import { DriverForm } from './forms/DriverForm';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '../ui/skeleton';
 
 interface DriverManagerProps {
   initialDrivers: Driver[];
@@ -33,6 +32,8 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Firestore listeners replace the array whenever the snapshot changes, so I mirror that behavior
+    // by syncing props -> state whenever the hook hands me a new value.
     setDrivers(initialDrivers || []);
   }, [initialDrivers]);
 
@@ -45,25 +46,29 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
       : await addDriver(data);
 
     if (result.success) {
-      // Note: For a more robust solution, we would refetch the data.
-      // For now, we optimistically update the UI.
+      // Instead of waiting for the realtime listener to refire I optimistically patch the table so
+      // admins get instant feedback.
       if (editingDriver) {
         setDrivers((prev) =>
-          prev.map((d) => (d.id === editingDriver.id ? { ...d, ...data, id: editingDriver.id, lastUpdated: new Date().toISOString() } : d))
+          prev.map((d) =>
+            d.id === editingDriver.id
+              ? { ...d, ...data, id: editingDriver.id, lastUpdated: new Date().toISOString() }
+              : d
+          )
         );
       } else {
-         const newDriver = { ...data, id: result.data, lastUpdated: new Date().toISOString() };
-         setDrivers(prev => [newDriver, ...prev]);
+        const newDriver = { ...data, id: result.data, lastUpdated: new Date().toISOString() } as Driver;
+        setDrivers((prev) => [newDriver, ...prev]);
       }
       toast({ title: 'Éxito', description: `Chofer ${editingDriver ? 'actualizado' : 'creado'} correctamente.` });
       closeForm();
     } else {
-      // Server action errors are still shown via toast. Permission errors are not server action errors.
+      // I bubble the raw message through the toast so I can see Firestore permission codes while debugging.
       toast({ variant: 'destructive', title: 'Error', description: result.error });
     }
     setIsLoading(false);
   };
-  
+
   const handleDeleteDriver = async (id: string) => {
     setIsLoading(true);
     const result = await deleteDriver(id);
@@ -113,17 +118,17 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
                 <TableCell>{getRouteName(driver.routeId)}</TableCell>
                 <TableCell><Badge variant={driver.status === 'Activo' ? 'default' : 'secondary'}>{driver.status || 'N/A'}</Badge></TableCell>
                 <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => openForm(driver)} disabled={isLoading}>
-                      <Edit className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" onClick={() => openForm(driver)} disabled={isLoading}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <DeleteConfirmationDialog
+                    onConfirm={() => handleDeleteDriver(driver.id)}
+                    isLoading={isLoading}
+                    itemName={driver.nombre}
+                  >
+                    <Button variant="ghost" size="icon" disabled={isLoading}>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                    <DeleteConfirmationDialog
-                        onConfirm={() => handleDeleteDriver(driver.id)}
-                        isLoading={isLoading}
-                        itemName={driver.nombre}
-                    >
-                        <Button variant="ghost" size="icon" disabled={isLoading}>
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
                   </DeleteConfirmationDialog>
                 </TableCell>
               </TableRow>

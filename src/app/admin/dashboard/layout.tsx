@@ -7,5 +7,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Wrapping the dashboard in the AuthGuard keeps the routing declarative.
   return <AuthGuard>{children}</AuthGuard>;
 }

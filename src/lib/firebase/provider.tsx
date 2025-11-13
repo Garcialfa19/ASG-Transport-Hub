@@ -69,8 +69,11 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const FirebaseProviderComponent = FirebaseContext.Provider;
+  const contextValue = { user, loading, firestore } as const;
+
   return (
-    <FirebaseContext.Provider value={{ user, loading, firestore }}>
+    <FirebaseProviderComponent value={contextValue}>
       {loading ? (
         {/* I reuse the skeleton loader from the admin login to keep the experience consistent. */}
         <div className="flex min-h-screen items-center justify-center">
@@ -85,7 +88,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
       ) : (
         children
       )}
-    </FirebaseContext.Provider>
+    </FirebaseProviderComponent>
   );
 }
 

@@ -11,9 +11,9 @@ import { v4 as uuidv4 } from 'uuid';
 // consistent across the dashboard.
 async function handleFirestoreAction(action: () => Promise<any>, revalidate: string) {
   try {
-    const result = await action();
+    await action();
     revalidatePath(revalidate);
-    return { success: true, data: result };
+    return { success: true };
   } catch (error) {
     console.error('Server Action Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -172,14 +172,18 @@ export async function getRoutes(): Promise<Route[]> {
 type DriverData = Omit<Driver, 'id' | 'lastUpdated'>;
 
 export async function addDriver(data: DriverData) {
-  // Drivers are lightweight so I let Firestore generate the ID and only return it to the client.
-  return handleFirestoreAction(async () => {
+  try {
     const docRef = await adminDb().collection('drivers').add({
       ...data,
       lastUpdated: adminFieldValue().serverTimestamp(),
     });
-    return docRef.id;
-  }, '/admin/dashboard');
+    revalidatePath('/admin/dashboard');
+    return { success: true, data: docRef.id };
+  } catch (error) {
+    console.error('Server Action Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: errorMessage };
+  }
 }
 
 export async function updateDriver(id: string, data: Partial<DriverData>) {
@@ -204,15 +208,19 @@ export async function deleteDriver(id: string) {
 type AlertData = Omit<Alert, 'id' | 'lastUpdated'>;
 
 export async function addAlert(data: AlertData) {
-  // Alerts are tiny, so I create them ad-hoc and revalidate the landing page immediately.
-  return handleFirestoreAction(async () => {
+  try {
     const docRef = await adminDb().collection('alerts').add({
       ...data,
       lastUpdated: adminFieldValue().serverTimestamp(),
     });
     revalidatePath('/');
-    return docRef.id;
-  }, '/admin/dashboard');
+    revalidatePath('/admin/dashboard');
+    return { success: true, data: docRef.id };
+  } catch (error) {
+    console.error('Server Action Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: errorMessage };
+  }
 }
 
 export async function deleteAlert(id: string) {

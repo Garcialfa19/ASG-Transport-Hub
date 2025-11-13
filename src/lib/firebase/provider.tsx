@@ -105,15 +105,28 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const contextValue = useMemo(
-    () => ({ user, loading, firestore }),
-    [user, loading],
-  );
+
+  const FirebaseProviderComponent = FirebaseContext.Provider;
+  const contextValue = { user, loading, firestore } as const;
 
   return (
-    <FirebaseProviderContent contextValue={contextValue} loading={loading}>
-      {children}
-    </FirebaseProviderContent>
+    <FirebaseProviderComponent value={contextValue}>
+      {loading ? (
+        {/* I reuse the skeleton loader from the admin login to keep the experience consistent. */}
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
+    </FirebaseProviderComponent>
+
   );
 }
 

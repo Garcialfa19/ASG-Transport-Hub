@@ -1,45 +1,45 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState, useContext } from 'react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
-import { auth } from './client';
+import { auth, firestore as fsClient } from './client';
+import type { Firestore } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getApp } from 'firebase/app';
 
-interface AuthContextType {
+interface FirebaseContextType {
   user: FirebaseUser | null;
   loading: boolean;
+  firestore: Firestore | null;
 }
 
-export const AuthContext = createContext<AuthContextType>({
+export const FirebaseContext = createContext<FirebaseContextType>({
   user: null,
   loading: true,
+  firestore: null,
 });
 
 export function FirebaseProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [firestore, setFirestore] = useState<Firestore | null>(null);
 
   useEffect(() => {
-    const app = getApp();
-    console.log("Firebase projectId:", app.options.projectId);
+    // Set the firestore instance
+    setFirestore(fsClient);
     
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-      console.log("Signed in?", !!firebaseUser, "uid:", firebaseUser?.uid);
-      setUser(firebaseUser); // Store the full FirebaseUser object
-      if (firebaseUser) {
-        const token = await firebaseUser.getIdTokenResult(true);
-        console.log("Custom claims:", token.claims);
-      }
+      setUser(firebaseUser);
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  const value = { user, loading, firestore };
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <FirebaseContext.Provider value={value}>
       {loading ? (
         <div className="flex h-screen w-screen items-center justify-center">
             <div className="flex flex-col items-center gap-4">
@@ -51,6 +51,14 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
             </div>
         </div>
       ) : children}
-    </AuthContext.Provider>
+    </FirebaseContext.Provider>
   );
+}
+
+export const useFirebase = () => {
+    const context = useContext(FirebaseContext);
+    if (context === undefined) {
+        throw new Error('useFirebase must be used within a FirebaseProvider');
+    }
+    return context;
 }

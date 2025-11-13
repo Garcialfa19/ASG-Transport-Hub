@@ -7,25 +7,26 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { useCollection } from '@/lib/firebase/hooks/use-collection';
 import { collection, query, orderBy } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase/client';
+import { useFirebase } from '@/lib/firebase/provider';
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
+  const { firestore } = useFirebase();
 
   const routesQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'routes'), orderBy('nombre', 'asc'));
-  }, []);
+  }, [firestore]);
 
   const alertsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'));
-  }, []);
+  }, [firestore]);
 
   const driversQuery = useMemo(() => {
     if (!firestore || !user) return null; // Only fetch if user is logged in
     return query(collection(firestore, 'drivers'), orderBy('nombre', 'asc'));
-  }, [user]);
+  }, [firestore, user]);
 
   const { data: routes, loading: routesLoading } = useCollection<Route>(routesQuery);
   const { data: alerts, loading: alertsLoading } = useCollection<Alert>(alertsQuery);
@@ -50,6 +51,7 @@ export default function AdminDashboardPage() {
   }
 
   if (!user) {
+    // This will be handled by the AuthGuard, but it's good practice to have it.
     return null;
   }
 

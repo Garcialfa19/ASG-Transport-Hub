@@ -45,6 +45,7 @@ export default function AdminLoginPage() {
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     setIsLoading(true);
     try {
+      if (!auth) throw new Error("Auth not initialized");
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({ title: 'Éxito', description: 'Inicio de sesión exitoso.' });
       router.push('/admin/dashboard');

@@ -14,13 +14,15 @@ import {
   query,
   Firestore,
 } from 'firebase/firestore';
-import { firestore } from './firebase/client';
-import type { Route, Alert, Driver } from './definitions';
 import { FirestorePermissionError } from './errors';
 import { errorEmitter } from './error-emitter';
 
+// This file is now mostly deprecated in favor of useCollection hook and server actions.
+// However, the error handling pattern is kept for reference.
+
 // Generic function to handle Firestore errors and emit permission errors
 async function handleFirestoreError<T>(
+  firestore: Firestore,
   promise: Promise<T>,
   refPath: string,
   operation: 'get' | 'list' | 'create' | 'update' | 'delete',
@@ -44,106 +46,25 @@ async function handleFirestoreError<T>(
 }
 
 // Generic function to get a collection
-export async function getCollection<T>(collectionName: string, order?: {field: string, direction: 'asc' | 'desc'}): Promise<T[]> {
+export async function getCollection<T>(firestore: Firestore, collectionName: string, order?: {field: string, direction: 'asc' | 'desc'}): Promise<T[]> {
   const collRef = collection(firestore, collectionName);
   const q = order ? query(collRef, orderBy(order.field, order.direction)) : collRef;
   const promise = getDocs(q);
   
-  const querySnapshot = await handleFirestoreError(promise, collectionName, 'list');
+  const querySnapshot = await handleFirestoreError(firestore, promise, collectionName, 'list');
 
   return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as T));
 }
 
 // Generic function to get a document
-export async function getDocument<T>(collectionName:string, id: string): Promise<T | null> {
+export async function getDocument<T>(firestore: Firestore, collectionName:string, id: string): Promise<T | null> {
   const docRef = doc(firestore, collectionName, id);
   const promise = getDoc(docRef);
 
-  const docSnap = await handleFirestoreError(promise, docRef.path, 'get');
+  const docSnap = await handleFirestoreError(firestore, promise, docRef.path, 'get');
 
   if (docSnap.exists()) {
     return { id: docSnap.id, ...docSnap.data() } as T;
   }
   return null;
 }
-
-// Generic function to add a document with an auto-generated ID
-export async function addDocument<T extends object>(collectionName: string, data: T) {
-  const enrichedData = {
-    ...data,
-    lastUpdated: Timestamp.now().toDate().toISOString(),
-  };
-  const collRef = collection(firestore, collectionName);
-  
-  // Do not await here, use .catch for error handling
-  addDoc(collRef, enrichedData)
-    .catch((serverError) => {
-        const permissionError = new FirestorePermissionError(
-            serverError.message,
-            collRef.path,
-            'create',
-            enrichedData
-        );
-        errorEmitter.emitPermissionError(permissionError);
-    });
-}
-
-// Generic function to set a document with a specific ID
-export async function setDocument<T extends object>(collectionName: string, id: string, data: T) {
-   const enrichedData = {
-    ...data,
-    lastUpdated: Timestamp.now().toDate().toISOString(),
-  };
-  const docRef = doc(firestore, collectionName, id);
-  
-  setDoc(docRef, enrichedData)
-    .catch((serverError) => {
-        const permissionError = new FirestorePermissionError(
-            serverError.message,
-            docRef.path,
-            'create',
-            enrichedData
-        );
-        errorEmitter.emitPermissionError(permissionError);
-    });
-}
-
-// Generic function to update a document
-export async function updateDocument<T extends object>(collectionName: string, id: string, data: Partial<T>) {
-    const enrichedData = {
-    ...data,
-    lastUpdated: Timestamp.now().toDate().toISOString(),
-  };
-  const docRef = doc(firestore, collectionName, id);
-  
-  updateDoc(docRef, enrichedData)
-    .catch((serverError) => {
-        const permissionError = new FirestorePermissionError(
-            serverError.message,
-            docRef.path,
-            'update',
-            enrichedData
-        );
-        errorEmitter.emitPermissionError(permissionError);
-    });
-}
-
-// Generic function to delete a document
-export async function deleteDocument(collectionName: string, id: string) {
-  const docRef = doc(firestore, collectionName, id);
-
-  deleteDoc(docRef)
-    .catch((serverError) => {
-        const permissionError = new FirestorePermissionError(
-            serverError.message,
-            docRef.path,
-            'delete'
-        );
-        errorEmitter.emitPermissionError(permissionError);
-    });
-}
-
-// Specific functions
-export const getClientRoutes = () => getCollection<Route>('routes', {field: 'nombre', direction: 'asc'});
-export const getAlerts = () => getCollection<Alert>('alerts', {field: 'lastUpdated', direction: 'desc'});
-export const getDrivers = () => getCollection<Driver>('drivers', {field: 'nombre', direction: 'asc'});

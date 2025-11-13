@@ -1,7 +1,6 @@
 'use client';
 
-import { useContext } from 'react';
-import { AuthContext } from '@/lib/firebase/provider';
+import { useFirebase } from '@/lib/firebase/provider';
 import type { User as FirebaseUser } from 'firebase/auth';
 
 interface AuthContextType {
@@ -10,9 +9,6 @@ interface AuthContextType {
 }
 
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within a FirebaseProvider');
-  }
-  return context;
+  const { user, loading } = useFirebase();
+  return { user, loading };
 };

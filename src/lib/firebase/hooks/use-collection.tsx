@@ -12,12 +12,8 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Use a ref to memoize the query object. This is important to prevent re-renders.
-  const queryRef = useRef(q);
-
   useEffect(() => {
-    // If the query is not ready, do nothing.
-    if (!queryRef.current) {
+    if (!q) {
       setLoading(false);
       return;
     }
@@ -25,7 +21,7 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
     setLoading(true);
 
     const unsubscribe = onSnapshot(
-      queryRef.current,
+      q,
       (querySnapshot) => {
         const data: T[] = [];
         querySnapshot.forEach((doc) => {
@@ -36,13 +32,15 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
       },
       (err) => {
         console.error("useCollection error:", err);
-        const permissionError = new FirestorePermissionError(
-          err.message,
-          // The path property exists on both Query and CollectionReference
-          (queryRef.current as any).path, 
-          'list'
-        );
-        errorEmitter.emitPermissionError(permissionError);
+        const path = (q as any).path;
+        if (err.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError(
+              err.message,
+              path, 
+              'list'
+            );
+            errorEmitter.emitPermissionError(permissionError);
+        }
         setError(err);
         setLoading(false);
       }
@@ -50,7 +48,7 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
 
     // Unsubscribe from the listener when the component unmounts.
     return () => unsubscribe();
-  }, [q]); // Re-run effect if the query object itself changes.
+  }, [q]);
 
   return { data, loading, error };
 }

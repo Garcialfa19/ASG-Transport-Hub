@@ -11,13 +11,14 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection } from '@/lib/firebase/hooks/use-collection';
 import { collection, orderBy, query } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase/client';
+import { useFirebase } from '@/lib/firebase/provider';
 
 export default function AlertasPage() {
+  const { firestore } = useFirebase();
   const alertsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'))
-  }, []);
+  }, [firestore]);
 
   const { data: alerts, loading } = useCollection<Alert>(alertsQuery);
 

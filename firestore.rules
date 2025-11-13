@@ -7,24 +7,20 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      return isSignedIn() && request.auth.token.admin == true;
-    }
-
-    // Publicly readable, admin writable
+    // Publicly readable, authenticated writable
     match /alerts/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     match /routes/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
-    // Admin only
+    // Authenticated only
     match /drivers/{docId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // Users can manage their own subdocs if you need that path

@@ -17,10 +17,9 @@ interface DashboardClientProps {
   routes: Route[];
   alerts: Alert[];
   drivers: Driver[];
-  isAdmin: boolean;
 }
 
-export function DashboardClient({ routes, alerts, drivers, isAdmin }: DashboardClientProps) {
+export function DashboardClient({ routes, alerts, drivers }: DashboardClientProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -50,18 +49,14 @@ export function DashboardClient({ routes, alerts, drivers, isAdmin }: DashboardC
         <Tabs defaultValue="routes" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="routes"><Bus className="mr-2 h-4 w-4" /> Rutas</TabsTrigger>
-            <TabsTrigger value="drivers" disabled={!isAdmin}><User className="mr-2 h-4 w-4" /> Choferes</TabsTrigger>
+            <TabsTrigger value="drivers"><User className="mr-2 h-4 w-4" /> Choferes</TabsTrigger>
             <TabsTrigger value="alerts"><Bell className="mr-2 h-4 w-4" /> Alertas</TabsTrigger>
           </TabsList>
           <TabsContent value="routes" className="mt-6">
             <RouteManager initialRoutes={routes} />
           </TabsContent>
           <TabsContent value="drivers" className="mt-6">
-            {isAdmin ? (
-              <DriverManager initialDrivers={drivers} routes={routes} />
-            ) : (
-              <p>No tiene permisos de administrador para ver esta sección.</p>
-            )}
+            <DriverManager initialDrivers={drivers} routes={routes} />
           </TabsContent>
           <TabsContent value="alerts" className="mt-6">
             <AlertManager initialAlerts={alerts} />

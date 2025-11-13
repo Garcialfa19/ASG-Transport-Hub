@@ -1,65 +1,18 @@
-'use client';
+import { getRoutes, getAlerts, getDrivers } from '@/lib/actions';
+import { DashboardPageClient } from './DashboardPageClient';
 
-import { useMemo } from 'react';
-import type { Route, Alert, Driver } from '@/lib/definitions';
-import { DashboardClient } from '@/components/admin/DashboardClient';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/hooks/use-auth';
-import { useCollection } from '@/lib/firebase/hooks/use-collection';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useFirebase } from '@/lib/firebase/provider';
-
-export default function AdminDashboardPage() {
-  const { user, loading: authLoading } = useAuth();
-  const { firestore } = useFirebase();
-
-  const routesQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'routes'), orderBy('nombre', 'asc'));
-  }, [firestore]);
-
-  const alertsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'));
-  }, [firestore]);
-
-  const driversQuery = useMemo(() => {
-    if (!firestore || !user) return null; // Only fetch if user is logged in
-    return query(collection(firestore, 'drivers'), orderBy('nombre', 'asc'));
-  }, [firestore, user]);
-
-  const { data: routes, loading: routesLoading } = useCollection<Route>(routesQuery);
-  const { data: alerts, loading: alertsLoading } = useCollection<Alert>(alertsQuery);
-  const { data: drivers, loading: driversLoading } = useCollection<Driver>(driversQuery);
-
-  const dataLoading = routesLoading || alertsLoading || driversLoading;
-
-  if (authLoading || (dataLoading && user)) {
-    return (
-      <div className="container py-8">
-        <h1 className="text-3xl font-bold mb-6">Panel de Administración</h1>
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-1 h-10 mb-6">
-            <Skeleton className="h-full w-full" />
-            <Skeleton className="h-full w-full" />
-            <Skeleton className="h-full w-full" />
-          </div>
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    // This will be handled by the AuthGuard, but it's good practice to have it.
-    return null;
-  }
+export default async function AdminDashboardPage() {
+  const [routes, alerts, drivers] = await Promise.all([
+    getRoutes(),
+    getAlerts(),
+    getDrivers(),
+  ]);
 
   return (
-    <DashboardClient
-      routes={routes || []}
-      alerts={alerts || []}
-      drivers={drivers || []}
+    <DashboardPageClient
+      initialRoutes={routes}
+      initialAlerts={alerts}
+      initialDrivers={drivers}
     />
   );
 }

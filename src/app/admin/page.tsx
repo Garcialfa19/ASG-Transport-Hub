@@ -18,6 +18,8 @@ import { Logo } from '@/components/shared/Logo';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// I lean on Zod here so I can reuse the same validation logic on the client and server if I
+// ever decide to move the login flow. Keeping it small makes the error messages predictable.
 const loginSchema = z.object({
   email: z.string().email({ message: 'Por favor ingrese un correo válido.' }),
   password: z.string().min(1, { message: 'La contraseña es requerida.' }),
@@ -38,6 +40,8 @@ export default function AdminLoginPage() {
   
   useEffect(() => {
     if (!authLoading && user) {
+      // If the user is already authenticated I short-circuit to the dashboard so the login
+      // screen never flashes for a split second on reload.
       router.replace('/admin/dashboard');
     }
   }, [user, authLoading, router]);
@@ -46,6 +50,8 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     try {
       if (!auth) throw new Error("Auth not initialized");
+      // This is the only place where I call the Firebase Auth client directly. On success the
+      // auth state listener in FirebaseProvider will take care of redirecting the user.
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({ title: 'Éxito', description: 'Inicio de sesión exitoso.' });
       router.push('/admin/dashboard');
@@ -63,15 +69,16 @@ export default function AdminLoginPage() {
   
   if (authLoading || user) {
     return (
-       <div className="flex min-h-screen items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-[250px]" />
-                    <Skeleton className="h-4 w-[200px]" />
-                </div>
-            </div>
+      // This matches the provider fallback so the transition from loading -> dashboard feels seamless.
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[200px]" />
+          </div>
         </div>
+      </div>
     );
   }
 

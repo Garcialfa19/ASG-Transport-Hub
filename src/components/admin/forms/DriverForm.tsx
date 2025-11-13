@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import type { Driver, Route } from '@/lib/definitions';
 
+// I use a sentinel value so react-hook-form can treat "no route" as a controlled state instead of `undefined`.
 const NONE = "__none__";
 
 const driverSchema = z.object({
@@ -53,6 +54,7 @@ export function DriverForm({ initialData, routes, onSubmit, isLoading, onClose }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Core identity fields */}
         <FormField
           control={form.control}
           name="nombre"
@@ -79,16 +81,17 @@ export function DriverForm({ initialData, routes, onSubmit, isLoading, onClose }
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="routeId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Ruta Asignada (Opcional)</FormLabel>
-               <Select
-                onValueChange={field.onChange}
-                value={field.value || NONE}
-              >
+        {/* Assignment metadata */}
+          <FormField
+            control={form.control}
+            name="routeId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ruta Asignada (Opcional)</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || NONE}
+                >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccione una ruta" />
@@ -129,6 +132,7 @@ export function DriverForm({ initialData, routes, onSubmit, isLoading, onClose }
             </FormItem>
           )}
         />
+        {/* Operational notes so dispatch can coordinate with the driver. */}
         <FormField
           control={form.control}
           name="comment"

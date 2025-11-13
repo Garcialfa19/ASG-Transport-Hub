@@ -2,10 +2,9 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { onSnapshot, query, collection, where, Query, DocumentData, CollectionReference } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase/client';
-import { errorEmitter } from '@/lib/error-emitter';
+import { onSnapshot, query, Query, CollectionReference } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/lib/errors';
+import { errorEmitter } from '@/lib/error-emitter';
 
 // A hook for subscribing to a Firestore collection.
 export function useCollection<T>(q: Query | CollectionReference | null) {
@@ -13,9 +12,11 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // Use a ref to memoize the query object. This is important to prevent re-renders.
   const queryRef = useRef(q);
 
   useEffect(() => {
+    // If the query is not ready, do nothing.
     if (!queryRef.current) {
       setLoading(false);
       return;
@@ -37,7 +38,8 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
         console.error("useCollection error:", err);
         const permissionError = new FirestorePermissionError(
           err.message,
-          (queryRef.current as Query).path,
+          // The path property exists on both Query and CollectionReference
+          (queryRef.current as any).path, 
           'list'
         );
         errorEmitter.emitPermissionError(permissionError);
@@ -46,8 +48,9 @@ export function useCollection<T>(q: Query | CollectionReference | null) {
       }
     );
 
+    // Unsubscribe from the listener when the component unmounts.
     return () => unsubscribe();
-  }, [q]);
+  }, [q]); // Re-run effect if the query object itself changes.
 
   return { data, loading, error };
 }

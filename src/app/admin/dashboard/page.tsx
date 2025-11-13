@@ -1,56 +1,38 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import type { Route, Alert, Driver } from '@/lib/definitions';
 import { DashboardClient } from '@/components/admin/DashboardClient';
-import { getClientRoutes, getAlerts, getDrivers } from '@/lib/data-service-client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
+import { useCollection } from '@/lib/firebase/hooks/use-collection';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase/client';
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
-  const [routes, setRoutes] = useState<Route[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
 
-  useEffect(() => {
-    if (authLoading) {
-      return;
-    }
+  const routesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'routes'), orderBy('nombre', 'asc'));
+  }, []);
 
-    const fetchData = async () => {
-      setDataLoading(true);
-      if (!user) {
-        setDataLoading(false);
-        return;
-      }
-      
-      try {
-        const routesPromise = getClientRoutes();
-        const alertsPromise = getAlerts();
-        const driversPromise = getDrivers();
+  const alertsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'));
+  }, []);
 
-        const [routesData, alertsData, driversData] = await Promise.all([
-          routesPromise,
-          alertsPromise,
-          driversPromise,
-        ]);
-        
-        setRoutes(routesData);
-        setAlerts(alertsData);
-        setDrivers(driversData);
-      } catch (error) {
-        console.error("An error occurred during data fetching:", error);
-      } finally {
-        setDataLoading(false);
-      }
-    };
+  const driversQuery = useMemo(() => {
+    if (!firestore || !user) return null; // Only fetch if user is logged in
+    return query(collection(firestore, 'drivers'), orderBy('nombre', 'asc'));
+  }, [user]);
 
-    fetchData();
-  }, [user, authLoading]);
+  const { data: routes, loading: routesLoading } = useCollection<Route>(routesQuery);
+  const { data: alerts, loading: alertsLoading } = useCollection<Alert>(alertsQuery);
+  const { data: drivers, loading: driversLoading } = useCollection<Driver>(driversQuery);
 
-  // Show a loading skeleton while auth is resolving or data is being fetched.
+  const dataLoading = routesLoading || alertsLoading || driversLoading;
+
   if (authLoading || (dataLoading && user)) {
     return (
       <div className="container py-8">
@@ -67,16 +49,15 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // If there's no user, the AuthGuard will redirect, so we don't need to render anything here.
   if (!user) {
     return null;
   }
-  
+
   return (
     <DashboardClient
-      routes={routes}
-      alerts={alerts}
-      drivers={drivers}
+      routes={routes || []}
+      alerts={alerts || []}
+      drivers={drivers || []}
     />
   );
 }

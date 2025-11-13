@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
@@ -19,7 +20,7 @@ interface DashboardClientProps {
   drivers: Driver[];
 }
 
-export function DashboardClient({ routes, alerts, drivers }: DashboardClientProps) {
+export function DashboardClient({ routes: initialRoutes, alerts: initialAlerts, drivers: initialDrivers }: DashboardClientProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -53,13 +54,13 @@ export function DashboardClient({ routes, alerts, drivers }: DashboardClientProp
             <TabsTrigger value="alerts"><Bell className="mr-2 h-4 w-4" /> Alertas</TabsTrigger>
           </TabsList>
           <TabsContent value="routes" className="mt-6">
-            <RouteManager initialRoutes={routes} />
+            <RouteManager initialRoutes={initialRoutes} />
           </TabsContent>
           <TabsContent value="drivers" className="mt-6">
-            <DriverManager initialDrivers={drivers} routes={routes} />
+            <DriverManager initialDrivers={initialDrivers} routes={initialRoutes} />
           </TabsContent>
           <TabsContent value="alerts" className="mt-6">
-            <AlertManager initialAlerts={alerts} />
+            <AlertManager initialAlerts={initialAlerts} />
           </TabsContent>
         </Tabs>
       </main>

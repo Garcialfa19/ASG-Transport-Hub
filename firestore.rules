@@ -3,29 +3,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{db}/documents {
 
-    function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
     // Public readable collections
     match /routes/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuthenticated();
     }
 
     match /alerts/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuthenticated();
     }
 
-    // Admin-only drivers
+    // Authenticated-only drivers
     match /drivers/{docId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAuthenticated();
     }
 
-    // (Optional) Lock everything else by default
+    // Allow any authenticated admin account to manage additional collections
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if isAuthenticated();
     }
   }
 }

@@ -81,11 +81,6 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
       try {
         const tokenResult = await u.getIdTokenResult();
-        if (!tokenResult.claims?.admin) {
-          document.cookie = `adminSession=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
-          return;
-        }
-
         const expiration = tokenResult.expirationTime
           ? new Date(tokenResult.expirationTime).getTime()
           : undefined;

@@ -107,7 +107,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   const contextValue = useMemo(
     () => ({ user, loading, firestore }),
-    [user, loading, firestore],
+    [user, loading],
   );
 
   return (

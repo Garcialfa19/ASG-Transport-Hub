@@ -9,6 +9,7 @@ import { errorEmitter } from '@/lib/error-emitter';
 // A hook for subscribing to a Firestore collection.
 interface UseCollectionOptions<T> {
   initialData?: T[];
+  enabled?: boolean;
 }
 
 function normalizeDocument<T>(doc: any): T {
@@ -34,14 +35,19 @@ function normalizeDocument<T>(doc: any): T {
 
 export function useCollection<T>(q: Query | CollectionReference | null, options?: UseCollectionOptions<T>) {
   const initialData = options?.initialData ?? null;
+  const enabled = options?.enabled ?? true;
   const [data, setData] = useState<T[] | null>(initialData);
-  const [loading, setLoading] = useState(!initialData);
+  const [loading, setLoading] = useState(enabled ? !initialData : false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!q) {
-      setData(initialData ?? []);
-      setLoading(false);
+    if (!enabled || !q) {
+      if (!enabled) {
+        setLoading(false);
+      } else {
+        setData(initialData ?? []);
+        setLoading(false);
+      }
       setError(null);
       return;
     }
@@ -59,16 +65,21 @@ export function useCollection<T>(q: Query | CollectionReference | null, options?
         setLoading(false);
       },
       (err) => {
-        console.error("useCollection error:", err);
         const path = (q as any)._query?.path?.segments?.join('/') || 'unknown path';
         if (err.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError(
-              err.message,
-              path, 
-              'list'
-            );
+          const permissionError = new FirestorePermissionError(
+            err.message,
+            path,
+            'list'
+          );
+          if (enabled) {
+            console.warn('Firestore permission denied for', path);
             errorEmitter.emitPermissionError(permissionError);
+          }
+        } else {
+          console.error('useCollection error:', err);
         }
+        setData(initialData ?? []);
         setError(err);
         setLoading(false);
       }
@@ -76,7 +87,7 @@ export function useCollection<T>(q: Query | CollectionReference | null, options?
 
     // Unsubscribe from the listener when the component unmounts.
     return () => unsubscribe();
-  }, [q, initialData]);
+  }, [q, initialData, enabled]);
 
   return { data, loading, error };
 }

@@ -15,40 +15,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from '@/hooks/use-toast';
 import type { Driver, Route } from '@/lib/definitions';
 import { addDriver, updateDriver, deleteDriver } from '@/lib/actions';
-import { getDrivers } from '@/lib/data-service-client';
 import { DriverForm } from './forms/DriverForm';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '../ui/skeleton';
 
 interface DriverManagerProps {
+  initialDrivers: Driver[];
   routes: Route[];
 }
 
-export function DriverManager({ routes }: DriverManagerProps) {
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
+  const [drivers, setDrivers] = useState<Driver[]>(initialDrivers || []);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  
+
   useEffect(() => {
-    const fetchDrivers = async () => {
-      setDataLoading(true);
-      try {
-        const driversData = await getDrivers();
-        setDrivers(driversData);
-      } catch (error) {
-        // The error is handled by the global error emitter, 
-        // so we don't need to show a toast here. We can just log it.
-        console.error("Failed to fetch drivers:", error);
-      } finally {
-        setDataLoading(false);
-      }
-    };
-    fetchDrivers();
-  }, []);
+    setDrivers(initialDrivers || []);
+  }, [initialDrivers]);
 
   const getRouteName = (routeId?: string) => routes.find((r) => r.id === routeId)?.nombre || 'N/A';
 
@@ -99,17 +85,6 @@ export function DriverManager({ routes }: DriverManagerProps) {
     setEditingDriver(null);
     setIsFormOpen(false);
   };
-  
-  if (dataLoading) {
-      return (
-          <div className="space-y-4">
-              <div className="flex justify-end mb-4">
-                  <Skeleton className="h-10 w-36" />
-              </div>
-              <Skeleton className="h-64 w-full" />
-          </div>
-      );
-  }
 
   return (
     <div>

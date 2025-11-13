@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { Route, Alert } from '@/lib/definitions';
+import type { Route, Alert, Driver } from '@/lib/definitions';
 import { DashboardClient } from '@/components/admin/DashboardClient';
-import { getClientRoutes, getAlerts } from '@/lib/data-service-client';
+import { getClientRoutes, getAlerts, getDrivers } from '@/lib/data-service-client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -11,6 +11,7 @@ export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const [routes, setRoutes] = useState<Route[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -26,26 +27,33 @@ export default function AdminDashboardPage() {
         const routesPromise = getClientRoutes();
         const alertsPromise = getAlerts();
         
-        // Concurrently, check for admin claims if a user is logged in.
         let userIsAdmin = false;
+        let driversPromise: Promise<Driver[]> = Promise.resolve([]);
+
         if (user) {
           try {
             const tokenResult = await user.getIdTokenResult(true); // Force refresh
             userIsAdmin = tokenResult.claims.admin === true;
+            if (userIsAdmin) {
+              // Only fetch drivers if the user is an admin
+              driversPromise = getDrivers();
+            }
           } catch (tokenError) {
-             console.error("Error fetching user token:", tokenError);
+             console.error("Error fetching user token or drivers:", tokenError);
              userIsAdmin = false;
           }
         }
         setIsAdmin(userIsAdmin);
 
-        // Await the public data fetches.
-        const [routesData, alertsData] = await Promise.all([
+        // Await all data fetches concurrently
+        const [routesData, alertsData, driversData] = await Promise.all([
           routesPromise,
           alertsPromise,
+          driversPromise,
         ]);
         setRoutes(routesData);
         setAlerts(alertsData);
+        setDrivers(driversData);
 
       } catch (error) {
         console.error("An error occurred during data fetching:", error);
@@ -79,6 +87,7 @@ export default function AdminDashboardPage() {
     <DashboardClient
       routes={routes}
       alerts={alerts}
+      drivers={drivers}
       isAdmin={isAdmin}
     />
   );

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { LogOut, Bus, User, Bell } from 'lucide-react';
-import type { Route, Alert } from '@/lib/definitions';
+import type { Route, Alert, Driver } from '@/lib/definitions';
 import { RouteManager } from './RouteManager';
 import { DriverManager } from './DriverManager';
 import { AlertManager } from './AlertManager';
@@ -16,10 +16,11 @@ import { Logo } from '../shared/Logo';
 interface DashboardClientProps {
   routes: Route[];
   alerts: Alert[];
+  drivers: Driver[];
   isAdmin: boolean;
 }
 
-export function DashboardClient({ routes, alerts, isAdmin }: DashboardClientProps) {
+export function DashboardClient({ routes, alerts, drivers, isAdmin }: DashboardClientProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -57,9 +58,9 @@ export function DashboardClient({ routes, alerts, isAdmin }: DashboardClientProp
           </TabsContent>
           <TabsContent value="drivers" className="mt-6">
             {isAdmin ? (
-              <DriverManager routes={routes} />
+              <DriverManager initialDrivers={drivers} routes={routes} />
             ) : (
-              <p>No tiene permisos para ver esta sección.</p>
+              <p>No tiene permisos de administrador para ver esta sección.</p>
             )}
           </TabsContent>
           <TabsContent value="alerts" className="mt-6">

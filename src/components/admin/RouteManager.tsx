@@ -25,6 +25,8 @@ interface RouteManagerProps {
   initialRoutes: Route[];
 }
 
+// Managing routes involves a bunch of local UI state, so I wrap it in its own component to keep
+// the dashboard tab nice and lean.
 export function RouteManager({ initialRoutes }: RouteManagerProps) {
   const [routes, setRoutes] = useState(initialRoutes);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -32,6 +34,7 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // I reuse the same handler for create/update to keep the toast logic consistent.
   const handleFormSubmit = async (data: any) => {
     setIsLoading(true);
     const result = editingRoute
@@ -55,6 +58,7 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
     setIsLoading(false);
   };
   
+  // Deletes are destructive so I double check using the confirmation dialog before writing here.
   const handleDeleteRoute = async (id: string) => {
     setIsLoading(true);
     const result = await deleteRoute(id);
@@ -81,9 +85,11 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
     if (imagePath && imagePath.startsWith('https://')) {
       return imagePath;
     }
+    // When I only have a placeholder ID stored in Firestore I resolve it against the static
+    // list so the UI still shows something meaningful.
     const placeholder = PlaceHolderImages.find(p => p.id === imagePath);
     return placeholder?.imageUrl || PlaceHolderImages.find(p => p.id === 'route-grecia-centro')?.imageUrl || '/default-image.png';
-  }
+  };
 
   return (
     <div>
@@ -93,6 +99,7 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
           Agregar Ruta
         </Button>
       </div>
+      {/* The table view keeps the at-a-glance stats consistent with the public site layout. */}
       <div className="border rounded-md">
         <Table>
           <TableHeader>
@@ -146,6 +153,7 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
         </Table>
       </div>
 
+      {/* The modal is shared for both create and edit flows so the form can keep its internal state. */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

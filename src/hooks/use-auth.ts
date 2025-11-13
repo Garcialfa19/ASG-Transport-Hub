@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
 }
 
+// Tiny wrapper that keeps my auth hook portable across components and tests.
 export const useAuth = (): AuthContextType => {
   const { user, loading } = useFirebase();
   return { user, loading };

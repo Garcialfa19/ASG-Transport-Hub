@@ -22,6 +22,8 @@ import type { Route } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 import { uploadFile } from '@/lib/actions';
 
+// I mirror the Firestore document shape here so validation errors bubble up before the server
+// action runs.
 const routeSchema = z.object({
   nombre: z.string().min(3, 'El nombre es requerido.'),
   especificacion: z.string().optional(),
@@ -51,6 +53,8 @@ export function RouteForm({ initialData, onSubmit, isLoading, onClose }: RouteFo
 
   const form = useForm<RouteFormValues>({
     resolver: zodResolver(routeSchema),
+    // Prefilling the form lets me reuse it for both editing and creating without writing extra
+    // state plumbing.
     defaultValues: initialData || {
       nombre: '',
       especificacion: '',
@@ -71,6 +75,8 @@ export function RouteForm({ initialData, onSubmit, isLoading, onClose }: RouteFo
     const result = await uploadFile(formData, 'route-images');
     
     if (result.success && result.data) {
+      // I store the public URL directly in the form so it gets persisted alongside the rest of the
+      // route fields when the user hits save.
       form.setValue(field, result.data);
       toast({ title: 'Éxito', description: 'Imagen subida correctamente.' });
     } else {
@@ -83,62 +89,158 @@ export function RouteForm({ initialData, onSubmit, isLoading, onClose }: RouteFo
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Basic Info */}
-        <FormField name="nombre" control={form.control} render={({ field }) => (
-          <FormItem><FormLabel>Nombre de la Ruta</FormLabel><FormControl><Input placeholder="Ej: Grecia - San Roque" {...field} /></FormControl><FormMessage /></FormItem>
-        )}/>
-        <FormField name="especificacion" control={form.control} render={({ field }) => (
-          <FormItem><FormLabel>Especificación (Opcional)</FormLabel><FormControl><Textarea placeholder="Ej: Por el EBAIS..." {...field} /></FormControl><FormMessage /></FormItem>
-        )}/>
+        {/* I keep the basic route metadata together so it's quick to scan. */}
+        <FormField
+          name="nombre"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre de la Ruta</FormLabel>
+              <FormControl>
+                <Input placeholder="Ej: Grecia - San Roque" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          name="especificacion"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Especificación (Opcional)</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Ej: Por el EBAIS..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField name="category" control={form.control} render={({ field }) => (
-              <FormItem><FormLabel>Categoría</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="grecia">Grecia</SelectItem><SelectItem value="sarchi">Sarchí</SelectItem></SelectContent></Select><FormMessage /></FormItem>
-            )}/>
-            <FormField name="duracionMin" control={form.control} render={({ field }) => (
-              <FormItem><FormLabel>Duración (min)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-            )}/>
-            <FormField name="tarifaCRC" control={form.control} render={({ field }) => (
-              <FormItem><FormLabel>Tarifa (CRC)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-            )}/>
+          <FormField
+            name="category"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Categoría</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione una categoría" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="grecia">Grecia</SelectItem>
+                    <SelectItem value="sarchi">Sarchí</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="duracionMin"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Duración (min)</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="tarifaCRC"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tarifa (CRC)</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
         
-        {/* Image Uploads */}
-        <FormField name="imagenTarjetaUrl" control={form.control} render={({ field }) => (
-          <FormItem>
-            <FormLabel>Imagen de Tarjeta</FormLabel>
-            <FormControl>
+        {/* Image uploads live in their own section so admins understand the two different assets. */}
+        <FormField
+          name="imagenTarjetaUrl"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Imagen de Tarjeta</FormLabel>
+              <FormControl>
                 <div className="flex items-center gap-4">
-                    <Input readOnly value={field.value || 'No seleccionada'} className="flex-1"/>
-                    <input type="file" ref={cardImageRef} hidden onChange={(e) => e.target.files && handleFileUpload(e.target.files[0], 'imagenTarjetaUrl')} accept="image/*" />
-                    <Button type="button" variant="outline" onClick={() => cardImageRef.current?.click()} disabled={isUploadingCard}>
-                        {isUploadingCard ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Upload className="mr-2 h-4 w-4" />}
-                        Subir
-                    </Button>
+                  <Input readOnly value={field.value || 'No seleccionada'} className="flex-1" />
+                  <input
+                    type="file"
+                    ref={cardImageRef}
+                    hidden
+                    onChange={(e) => e.target.files && handleFileUpload(e.target.files[0], 'imagenTarjetaUrl')}
+                    accept="image/*"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => cardImageRef.current?.click()}
+                    disabled={isUploadingCard}
+                  >
+                    {isUploadingCard ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    Subir
+                  </Button>
                 </div>
-            </FormControl>
-            <FormDescription>Esta imagen aparece en la tarjeta de la ruta.</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}/>
-        <FormField name="imagenHorarioUrl" control={form.control} render={({ field }) => (
-          <FormItem>
-            <FormLabel>Imagen de Horario</FormLabel>
-            <FormControl>
+              </FormControl>
+              <FormDescription>Esta imagen aparece en la tarjeta de la ruta.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          name="imagenHorarioUrl"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Imagen de Horario</FormLabel>
+              <FormControl>
                 <div className="flex items-center gap-4">
-                    <Input readOnly value={field.value || 'No seleccionada'} className="flex-1"/>
-                    <input type="file" ref={scheduleImageRef} hidden onChange={(e) => e.target.files && handleFileUpload(e.target.files[0], 'imagenHorarioUrl')} accept="image/*" />
-                    <Button type="button" variant="outline" onClick={() => scheduleImageRef.current?.click()} disabled={isUploadingSchedule}>
-                        {isUploadingSchedule ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Upload className="mr-2 h-4 w-4" />}
-                        Subir
-                    </Button>
+                  <Input readOnly value={field.value || 'No seleccionada'} className="flex-1" />
+                  <input
+                    type="file"
+                    ref={scheduleImageRef}
+                    hidden
+                    onChange={(e) => e.target.files && handleFileUpload(e.target.files[0], 'imagenHorarioUrl')}
+                    accept="image/*"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => scheduleImageRef.current?.click()}
+                    disabled={isUploadingSchedule}
+                  >
+                    {isUploadingSchedule ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    Subir
+                  </Button>
                 </div>
-            </FormControl>
-             <FormDescription>Esta imagen se muestra en el modal del horario.</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}/>
+              </FormControl>
+              <FormDescription>Esta imagen se muestra en el modal del horario.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        {/* Actions */}
+        {/* Action buttons stay anchored to the bottom to mimic a traditional modal footer. */}
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
             Cancelar

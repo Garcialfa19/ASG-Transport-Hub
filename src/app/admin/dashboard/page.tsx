@@ -13,27 +13,33 @@ export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const { firestore } = useFirebase();
 
+  // I memoize the queries so Firestore doesn't create a new listener on every render.
   const routesQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'routes'), orderBy('nombre', 'asc'));
   }, [firestore]);
 
+  // Alerts are sorted by `lastUpdated` so the newest notice floats to the top of the list I render.
   const alertsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'));
   }, [firestore]);
 
   const driversQuery = useMemo(() => {
-    if (!firestore || !user) return null; // Only fetch if user is logged in
+    if (!firestore || !user) return null; // I only fetch drivers when an admin is logged in.
     return query(collection(firestore, 'drivers'), orderBy('nombre', 'asc'));
   }, [firestore, user]);
 
+  // Each call wires up a realtime listener. I like the symmetry between server actions (mutations)
+  // and these hooks because the UI updates instantly after a write.
   const { data: routes, loading: routesLoading } = useCollection<Route>(routesQuery);
   const { data: alerts, loading: alertsLoading } = useCollection<Alert>(alertsQuery);
   const { data: drivers, loading: driversLoading } = useCollection<Driver>(driversQuery);
 
   const dataLoading = routesLoading || alertsLoading || driversLoading;
 
+  // While the auth state or the Firestore listeners are still resolving I keep the skeletons
+  // on screen so the layout doesn't jump around.
   if (authLoading || (dataLoading && user)) {
     return (
       <div className="container py-8">
@@ -51,7 +57,8 @@ export default function AdminDashboardPage() {
   }
 
   if (!user) {
-    // This will be handled by the AuthGuard, but it's good practice to have it.
+    // The AuthGuard handles redirects, but I keep this guard to make the component resilient
+    // when I reuse it in tests or storybooks.
     return null;
   }
 

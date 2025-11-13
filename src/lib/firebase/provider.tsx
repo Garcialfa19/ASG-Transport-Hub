@@ -13,6 +13,7 @@ interface FirebaseContextType {
   firestore: Firestore;       // available immediately
 }
 
+// I expose the raw Firebase bits through context so any client component can subscribe.
 export const FirebaseContext = createContext<FirebaseContextType>({
   user: null,
   loading: true,
@@ -37,6 +38,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   return (
     <FirebaseContext.Provider value={{ user, loading, firestore }}>
       {loading ? (
+        {/* I reuse the skeleton loader from the admin login to keep the experience consistent. */}
         <div className="flex min-h-screen items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <Skeleton className="h-12 w-12 rounded-full" />
@@ -55,6 +57,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
 export const useFirebase = () => {
   const ctx = useContext(FirebaseContext);
+  // Guarding here helps me catch cases where I forget to wrap a tree in FirebaseProvider.
   if (ctx === undefined) throw new Error('useFirebase must be used within a FirebaseProvider');
   return ctx;
 };

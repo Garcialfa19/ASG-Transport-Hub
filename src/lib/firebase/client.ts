@@ -4,7 +4,8 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { firebaseConfig } from './config';
 
-// Initialize Firebase
+// I initialize the client SDK lazily so I can use the same module in Next.js pages and server
+// actions without double-initializing the app.
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const firestore = getFirestore(app);

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import type { Alert } from '@/lib/definitions';
 
+// Keeping the schema tiny ensures quick data entry when ops needs to publish a notice fast.
 const alertSchema = z.object({
   titulo: z.string().min(5, 'El título debe tener al menos 5 caracteres.'),
 });
@@ -30,6 +31,7 @@ export function AlertForm({ onSubmit, isLoading, onClose }: AlertFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* I only capture the headline here—the body of the notice lives directly on the route cards. */}
         <FormField
           control={form.control}
           name="titulo"

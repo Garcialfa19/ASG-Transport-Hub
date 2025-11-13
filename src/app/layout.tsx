@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from './providers';
-import { FirebaseErrorListener } from '@/components/shared/FirebaseErrorListener';
 
 export const metadata: Metadata = {
   title: 'ASG Transport Hub',
@@ -25,7 +24,6 @@ export default function RootLayout({
         <Providers>
           {children}
           <Toaster />
-          <FirebaseErrorListener />
         </Providers>
       </body>
     </html>

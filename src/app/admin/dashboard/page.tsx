@@ -15,41 +15,47 @@ export default function AdminDashboardPage() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // We need the user object to exist before we do anything.
     if (authLoading) {
       return;
     }
 
-    const fetchData = async () => {
+    const fetchDataAndClaims = async () => {
       setDataLoading(true);
       try {
-        // 1. Fetch public data that everyone can see.
+        // Public data can be fetched immediately.
         const routesPromise = getClientRoutes();
         const alertsPromise = getAlerts();
+        
+        // Concurrently, check for admin claims if a user is logged in.
+        let userIsAdmin = false;
+        if (user) {
+          try {
+            const tokenResult = await user.getIdTokenResult(true); // Force refresh
+            userIsAdmin = tokenResult.claims.admin === true;
+          } catch (tokenError) {
+             console.error("Error fetching user token:", tokenError);
+             userIsAdmin = false;
+          }
+        }
+        setIsAdmin(userIsAdmin);
+
+        // Await the public data fetches.
         const [routesData, alertsData] = await Promise.all([
-          routesPromise.catch(() => []),
-          alertsPromise.catch(() => []),
+          routesPromise,
+          alertsPromise,
         ]);
         setRoutes(routesData);
         setAlerts(alertsData);
 
-        // 2. Check for an authenticated user and admin claims.
-        if (user) {
-          const tokenResult = await user.getIdTokenResult(true); // Force refresh
-          const userIsAdmin = tokenResult.claims.admin === true;
-          setIsAdmin(userIsAdmin);
-        } else {
-          setIsAdmin(false);
-        }
       } catch (error) {
         console.error("An error occurred during data fetching:", error);
-        setIsAdmin(false);
+        setIsAdmin(false); // Ensure isAdmin is false on error
       } finally {
         setDataLoading(false);
       }
     };
 
-    fetchData();
+    fetchDataAndClaims();
   }, [user, authLoading]);
 
   // Show a loading skeleton while auth is resolving or data is being fetched.

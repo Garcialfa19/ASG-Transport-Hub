@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
 import {
   Table,
   TableBody,
@@ -24,10 +23,9 @@ import { Skeleton } from '../ui/skeleton';
 
 interface DriverManagerProps {
   routes: Route[];
-  isAdmin: boolean;
 }
 
-export function DriverManager({ routes, isAdmin }: DriverManagerProps) {
+export function DriverManager({ routes }: DriverManagerProps) {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -36,26 +34,21 @@ export function DriverManager({ routes, isAdmin }: DriverManagerProps) {
   const { toast } = useToast();
   
   useEffect(() => {
-    if (!isAdmin) {
-      setDataLoading(false);
-      return;
-    }
-    
     const fetchDrivers = async () => {
       setDataLoading(true);
       try {
         const driversData = await getDrivers();
         setDrivers(driversData);
       } catch (error) {
-        // The error is now handled by the global error emitter, 
-        // so we don't need to show a toast here.
+        // The error is handled by the global error emitter, 
+        // so we don't need to show a toast here. We can just log it.
         console.error("Failed to fetch drivers:", error);
       } finally {
         setDataLoading(false);
       }
     };
     fetchDrivers();
-  }, [isAdmin]);
+  }, []);
 
   const getRouteName = (routeId?: string) => routes.find((r) => r.id === routeId)?.nombre || 'N/A';
 
@@ -116,14 +109,6 @@ export function DriverManager({ routes, isAdmin }: DriverManagerProps) {
               <Skeleton className="h-64 w-full" />
           </div>
       );
-  }
-
-  if (!isAdmin) {
-    return (
-       <div className="border rounded-md p-8 text-center text-muted-foreground">
-          No tiene permisos de administrador para ver esta sección.
-       </div>
-    )
   }
 
   return (

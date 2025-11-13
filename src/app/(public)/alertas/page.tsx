@@ -1,5 +1,3 @@
-'use client';
-import { useMemo } from 'react';
 import { Bell, Info } from 'lucide-react';
 import type { Alert } from '@/lib/definitions';
 import {
@@ -8,34 +6,30 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection } from '@/lib/firebase/hooks/use-collection';
-import { collection, orderBy, query } from 'firebase/firestore';
-import { useFirebase } from '@/lib/firebase/provider';
+import { getAlerts } from '@/lib/actions';
 
-export default function AlertasPage() {
-  const { firestore } = useFirebase();
-  const alertsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'alerts'), orderBy('lastUpdated', 'desc'))
-  }, [firestore]);
+function formatLastUpdated(lastUpdated: string) {
+  const date = new Date(lastUpdated);
+  if (Number.isNaN(date.getTime())) {
+    return 'Fecha desconocida';
+  }
+  return date.toLocaleString('es-CR');
+}
 
-  const { data: alerts, loading } = useCollection<Alert>(alertsQuery);
+export default async function AlertasPage() {
+  const alerts: Alert[] = await getAlerts();
 
   return (
     <div className="container py-12 md:py-16">
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Alertas del Servicio</h1>
-        <p className="mt-2 text-lg text-muted-foreground">Manténgase informado sobre cualquier eventualidad en nuestras rutas.</p>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Manténgase informado sobre cualquier eventualidad en nuestras rutas.
+        </p>
       </div>
 
       <div className="max-w-2xl mx-auto">
-        {loading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </div>
-        ) : alerts && alerts.length > 0 ? (
+        {alerts.length > 0 ? (
           <div className="space-y-4">
             {alerts.map((alert) => (
               <Card key={alert.id}>
@@ -44,7 +38,7 @@ export default function AlertasPage() {
                   <div className="flex-1">
                     <CardTitle>{alert.titulo}</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Publicado: {new Date(alert.lastUpdated).toLocaleString('es-CR')}
+                      Publicado: {formatLastUpdated(alert.lastUpdated)}
                     </p>
                   </div>
                 </CardHeader>

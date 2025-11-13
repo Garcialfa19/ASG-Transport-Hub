@@ -31,6 +31,8 @@ export function DashboardClient({ routes: initialRoutes, alerts: initialAlerts, 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+      document.cookie = `adminSession=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
       toast({ title: 'Sesión cerrada', description: 'Ha cerrado sesión correctamente.' });
       router.push('/admin');
     } catch (error) {

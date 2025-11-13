@@ -25,7 +25,7 @@ async function handleFirestoreAction(action: () => Promise<any>, revalidate: str
 // Uploading from a server action keeps my service account credentials off the client and lets me
 // generate publicly cacheable URLs in one shot.
 export async function uploadFile(formData: FormData, folder: string) {
-    try {
+  try {
     const file = formData.get('file') as File | null;
     if (!file) return { success: false, error: 'No file provided.' };
 
@@ -59,17 +59,37 @@ export async function uploadFile(formData: FormData, folder: string) {
 // --- Route Actions ---
 type RouteData = Omit<Route, 'id' | 'lastUpdated'>;
 
+function serializeTimestamp(value: unknown): string {
+  if (!value) {
+    return new Date().toISOString();
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === 'object' && value !== null && 'toDate' in value && typeof (value as any).toDate === 'function') {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+
+  return new Date(value as any).toISOString();
+}
+
 export async function addRoute(data: Partial<RouteData>) {
   try {
     // I prefer deterministic IDs so I can reference routes in other collections without
     // additional lookups.
     const id = slugify(`${data.nombre} ${data.especificacion || ''}`) || uuidv4();
-    const now = new Date().toISOString();
+    const FieldValue = adminFieldValue();
 
     const routeDoc = {
       ...data,
       id,
-      lastUpdated: now,
+      lastUpdated: FieldValue.serverTimestamp(),
     };
 
     await adminDb().collection('routes').doc(id).set(routeDoc, { merge: false });
@@ -89,9 +109,10 @@ export async function addRoute(data: Partial<RouteData>) {
 
 export async function updateRoute(id: string, data: Partial<RouteData>) {
  try {
+    const FieldValue = adminFieldValue();
     await adminDb().collection('routes').doc(id).update({
       ...data,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: FieldValue.serverTimestamp(),
     });
     revalidatePath('/admin/dashboard');
     revalidatePath('/');
@@ -124,7 +145,13 @@ export async function getRoutes(): Promise<Route[]> {
   if (snapshot.empty) {
     return [];
   }
-  return snapshot.docs.map(doc => doc.data() as Route);
+  return snapshot.docs.map((doc) => {
+    const data = doc.data() as Route;
+    return {
+      ...data,
+      lastUpdated: serializeTimestamp((data as any).lastUpdated),
+    };
+  });
 }
 
 
@@ -136,7 +163,7 @@ export async function addDriver(data: DriverData) {
   return handleFirestoreAction(async () => {
     const docRef = await adminDb().collection('drivers').add({
       ...data,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: adminFieldValue().serverTimestamp(),
     });
     return docRef.id;
   }, '/admin/dashboard');
@@ -146,7 +173,7 @@ export async function updateDriver(id: string, data: Partial<DriverData>) {
   return handleFirestoreAction(() =>
     adminDb().collection('drivers').doc(id).update({
       ...data,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: adminFieldValue().serverTimestamp(),
     }),
     '/admin/dashboard'
   );
@@ -168,7 +195,7 @@ export async function addAlert(data: AlertData) {
   return handleFirestoreAction(async () => {
     const docRef = await adminDb().collection('alerts').add({
       ...data,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: adminFieldValue().serverTimestamp(),
     });
     revalidatePath('/');
     return docRef.id;
@@ -185,4 +212,34 @@ export async function deleteAlert(id: string) {
     revalidatePath('/');
   }
   return result;
+}
+
+export async function getAlerts(): Promise<Alert[]> {
+  const snapshot = await adminDb().collection('alerts').orderBy('lastUpdated', 'desc').get();
+  if (snapshot.empty) {
+    return [];
+  }
+
+  return snapshot.docs.map((doc) => {
+    const data = doc.data() as Alert;
+    return {
+      ...data,
+      lastUpdated: serializeTimestamp((data as any).lastUpdated),
+    };
+  });
+}
+
+export async function getDrivers(): Promise<Driver[]> {
+  const snapshot = await adminDb().collection('drivers').orderBy('nombre', 'asc').get();
+  if (snapshot.empty) {
+    return [];
+  }
+
+  return snapshot.docs.map((doc) => {
+    const data = doc.data() as Driver;
+    return {
+      ...data,
+      lastUpdated: serializeTimestamp((data as any).lastUpdated),
+    };
+  });
 }

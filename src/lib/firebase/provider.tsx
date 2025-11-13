@@ -2,7 +2,11 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useState, useContext } from 'react';
-import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
+import {
+  onAuthStateChanged,
+  onIdTokenChanged,
+  type User as FirebaseUser,
+} from 'firebase/auth';
 import { auth, firestore as fsClient } from './client';
 import type { Firestore } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,11 +32,41 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   const firestore = fsClient;
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
       setUser(u ?? null);
       setLoading(false);
     });
-    return () => unsubscribe();
+    const unsubscribeToken = onIdTokenChanged(auth, async (u) => {
+      const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+      if (!u) {
+        document.cookie = `adminSession=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+        return;
+      }
+
+      try {
+        const tokenResult = await u.getIdTokenResult();
+        if (!tokenResult.claims?.admin) {
+          document.cookie = `adminSession=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+          return;
+        }
+
+        const expiration = tokenResult.expirationTime
+          ? new Date(tokenResult.expirationTime).getTime()
+          : undefined;
+        const maxAge = expiration
+          ? Math.max(0, Math.floor((expiration - Date.now()) / 1000))
+          : 60 * 60;
+
+        document.cookie = `adminSession=${tokenResult.token}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
+      } catch (error) {
+        console.error('Failed to refresh admin session cookie', error);
+        document.cookie = `adminSession=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
+      }
+    });
+    return () => {
+      unsubscribeAuth();
+      unsubscribeToken();
+    };
   }, []);
 
   return (

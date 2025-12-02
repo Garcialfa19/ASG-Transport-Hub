@@ -2,13 +2,22 @@
 import Image from 'next/image';
 import { Clock, MapPin } from 'lucide-react';
 
-export default function RouteCard({ nombre, duracionMin, costo, origen, destino, imagenUrl }: {
+export default function RouteCard({
+  nombre,
+  duracionMin,
+  costo,
+  origen,
+  destino,
+  imagenUrl,
+  onClick,
+}: {
   nombre: string;
   duracionMin?: number;
   costo?: number;
   origen?: string;
   destino?: string;
   imagenUrl?: string;
+  onClick?: () => void;
 }) {
   const duracion =
     duracionMin ? `${Math.floor(duracionMin / 60)}h ${duracionMin % 60}m` : '—';
@@ -18,7 +27,19 @@ export default function RouteCard({ nombre, duracionMin, costo, origen, destino,
       : '—';
 
   return (
-    <div className="rounded-xl border bg-white shadow hover:shadow-lg transition overflow-hidden">
+    <div
+      className="rounded-xl border bg-white shadow hover:shadow-lg transition overflow-hidden"
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(event) => {
+        if (!onClick) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
       {imagenUrl ? (
         <div className="relative h-40 w-full">
           <Image src={imagenUrl} alt={nombre} fill className="object-cover" />

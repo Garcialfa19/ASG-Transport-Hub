@@ -14,10 +14,13 @@ export default function RoutesSectionClient({ routes }: RoutesSectionClientProps
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Split routes into their respective tabs only once unless the list changes. The categories
+  // are controlled from the CMS so the UI logic stays simple here.
   const greciaRoutes = useMemo(() => routes.filter((route) => route.category === 'grecia'), [routes]);
   const sarchiRoutes = useMemo(() => routes.filter((route) => route.category === 'sarchi'), [routes]);
 
   const handleRouteClick = (route: Route) => {
+    // Avoid opening the modal when there is no schedule image available.
     if (!route.imagenHorarioUrl) return;
     setSelectedRoute(route);
     setIsModalOpen(true);

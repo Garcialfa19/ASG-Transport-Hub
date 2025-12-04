@@ -37,6 +37,45 @@ src/
 
 Refer to [`docs/blueprint.md`](docs/blueprint.md) for the original product brief and visual guidelines.
 
+## Code walkthrough
+
+The application is intentionally small, so every file has a clearly defined job. Start here when you need a refresher on where a feature lives or how data reaches the UI:
+
+- **Routing shell**
+  - `src/app/layout.tsx` defines the public-facing HTML shell and pulls in global styles.
+  - `src/app/(public)/layout.tsx` applies the shared header/footer to passenger pages.
+  - `src/app/(public)/page.tsx` renders the passenger homepage by composing the `RoutesSection` server component.
+  - `src/app/admin/page.tsx` is the email/password login screen for admins (client component to access Firebase Auth).
+- **Providers and shared plumbing**
+  - `src/app/providers.tsx` mounts the `FirebaseProvider` across the entire client tree.
+  - `src/lib/firebase/provider.tsx` wraps Firebase Auth + Firestore and exposes them via React context while also keeping an `adminSession` cookie in sync for server actions.
+  - `src/components/shared/AuthGuard.tsx` checks for an authenticated user and redirects to `/admin` when necessary.
+- **Admin dashboard**
+  - `src/components/admin/DashboardClient.tsx` renders the authenticated dashboard shell with tabs for routes, drivers, and alerts plus a logout flow.
+  - `src/components/admin/RouteManager.tsx`, `DriverManager.tsx`, `AlertManager.tsx` contain the CRUD tables and forms for each collection.
+  - `src/components/admin/DeleteConfirmationDialog.tsx` is the reusable confirmation modal used by the managers.
+- **Passenger experience**
+  - `src/components/public/RoutesSection.tsx` fetches routes on the server so the passenger view can stay static-friendly.
+  - `src/components/public/RoutesSectionClient.tsx` filters routes into tabs and coordinates the schedule modal state.
+  - `src/components/public/RouteCard.tsx` and `ScheduleModal.tsx` are the building blocks for the card grid and enlarged schedule view.
+- **Firebase utilities**
+  - `src/lib/actions.ts` houses all server actions for Firestore mutations/uploads and ensures paths are revalidated after writes.
+  - `src/lib/firebase/admin.ts` initializes the Admin SDK using a JSON service account string from `FIREBASE_SERVICE_ACCOUNT` and exports helpers for Firestore/Auth/Storage.
+  - `src/lib/firebase/client.ts` initializes the client SDK used in React components.
+  - `src/lib/definitions.ts` contains the core TypeScript types shared across components and server actions.
+- **UI primitives and helpers**
+  - `src/components/ui/*` are shadcn/ui wrappers with Tailwind-friendly defaults.
+  - `src/hooks/use-toast.ts` exposes a toast hook used by both public and admin flows.
+  - `src/hooks/use-auth.ts` is a convenience hook for reading auth state from `FirebaseProvider`.
+  - `src/lib/utils.ts` and `src/lib/errors.ts` gather small helpers like `slugify` and error mapping.
+
+### Data flow (end to end)
+
+1. **Authentication** – The `FirebaseProvider` subscribes to `onAuthStateChanged` and writes the ID token into an `adminSession` cookie. Server actions rely on that cookie to authorize admin-only mutations.
+2. **Reads** – Passenger pages (e.g., `RoutesSection`) run on the server and read from Firestore via the Admin SDK so static pages can be generated without client credentials.
+3. **Writes** – Dashboard forms call functions in `src/lib/actions.ts`. Each action writes to Firestore or Cloud Storage, then triggers `revalidatePath` so both the dashboard and public pages pick up changes immediately.
+4. **Realtime updates** – Client components (like the manager tables) subscribe to Firestore collections to keep in sync without page reloads once the initial server data has hydrated.
+
 ## Getting Started
 
 ### Prerequisites

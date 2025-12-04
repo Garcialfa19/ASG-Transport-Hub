@@ -33,7 +33,6 @@ src/
 ├─ hooks/                  # Client-side hooks (auth, UI helpers)
 ├─ lib/                    # Firebase helpers, server actions, utilities
 │  └─ firebase/            # Firebase Admin and client SDK wrappers
-└─ ai/                     # Prompt assets used by Firebase Studio
 ```
 
 Refer to [`docs/blueprint.md`](docs/blueprint.md) for the original product brief and visual guidelines.

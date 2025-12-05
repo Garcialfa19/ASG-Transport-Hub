@@ -1,9 +1,14 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+
+<svg width="900" height="340" viewBox="0 0 900 340" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">ASG Autotransportes Santa Gertrudis Limitada</title>
-  <desc id="desc">Navy blue circle with a bold white right-pointing arrow.</desc>
-  <circle cx="256" cy="256" r="256" fill="#262C6F"/>
-  <path
-    fill="#FFFFFF"
-    d="M144 236c-11.046 0-20 8.954-20 20s8.954 20 20 20h154.544l-43.772 43.772c-7.81 7.81-7.81 20.474 0 28.284 7.81 7.81 20.474 7.81 28.284 0l84-84c7.81-7.81 7.81-20.474 0-28.284l-84-84c-7.81-7.81-20.474-7.81-28.284 0-7.81 7.81-7.81 20.474 0 28.284L298.544 236H144Z"
-  />
+  <desc id="desc">Blue circular arrow icon followed by the gray lowercase letters a s g and the company name underneath.</desc>
+  <rect width="900" height="340" fill="white"/>
+  <g transform="translate(40,60)">
+    <circle cx="120" cy="110" r="110" fill="#2C2F77"/>
+    <rect x="80" y="95" width="120" height="30" rx="6" fill="white"/>
+    <rect x="150" y="60" width="30" height="120" rx="6" fill="white"/>
+    <path d="M170 60 L230 110 L170 160 Z" fill="white"/>
+  </g>
+  <text x="320" y="175" fill="#6E6E6E" font-family="'Inter', 'Segoe UI', 'Arial', sans-serif" font-size="140" font-weight="700" letter-spacing="-5">asg</text>
+  <text x="320" y="230" fill="#7C7C7C" font-family="'Inter', 'Segoe UI', 'Arial', sans-serif" font-size="32" font-weight="500" letter-spacing="0.5">Autotransportes Santa Gertrudis Limitada</text>
 </svg>

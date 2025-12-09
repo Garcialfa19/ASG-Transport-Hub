@@ -52,7 +52,7 @@ export default function RouteCard({
           <span>{origen && destino ? `${origen} → ${destino}` : 'Ruta'}</span>
         </div>
       )}
-{/* test */}
+
       <div className="p-4">
         <h3 className="text-lg font-semibold line-clamp-1">{nombre}</h3>
         {especificacion && (

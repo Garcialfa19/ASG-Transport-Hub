@@ -15,8 +15,8 @@ export function Logo({ className }: LogoProps) {
       className={cn('inline-flex items-center', className)}
     >
       <Image
-        src="/components/shared/Logo.png"
-        alt="/components/shared/Icono.png"
+        src="/Logo.png"
+        alt="ASG Transport Hub Logo"
         width={200}
         height={80}
         priority

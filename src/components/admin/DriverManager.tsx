@@ -106,7 +106,7 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
               <TableHead>Nombre</TableHead>
               <TableHead>Placa</TableHead>
               <TableHead>Ruta Asignada</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead>Estado / Comentario</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -116,7 +116,14 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
                 <TableCell className="font-medium">{driver.nombre}</TableCell>
                 <TableCell>{driver.busPlate || 'N/A'}</TableCell>
                 <TableCell>{getRouteName(driver.routeId)}</TableCell>
-                <TableCell><Badge variant={driver.status === 'Activo' ? 'default' : 'secondary'}>{driver.status || 'N/A'}</Badge></TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={driver.status === 'Activo' ? 'default' : 'secondary'}>
+                      {driver.status || 'N/A'}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">{driver.comment || 'Sin comentario'}</span>
+                  </div>
+                </TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => openForm(driver)} disabled={isLoading}>
                     <Edit className="h-4 w-4" />

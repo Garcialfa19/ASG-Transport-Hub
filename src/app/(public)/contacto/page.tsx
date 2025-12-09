@@ -66,19 +66,6 @@ export default function ContactoPage() {
             </div>
         </div>
       </div>
-      
-      {mapImage && (
-        <section className="relative h-96 w-full mt-16">
-          <Image
-            src={mapImage.imageUrl}
-            alt={mapImage.description}
-            fill
-            className="object-cover"
-            data-ai-hint={mapImage.imageHint}
-          />
-          <div className="absolute inset-0 bg-black/30" />
-        </section>
-      )}
     </>
   );
 }

@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import logoImage from './Logo.png';
 
 interface LogoProps {
   className?: string;
@@ -14,8 +15,8 @@ export function Logo({ className }: LogoProps) {
       className={cn('inline-flex items-center', className)}
     >
       <Image
-        src="/logo-asg.svg"
-        alt="ASG Autotransportes Santa Gertrudis Limitada logo"
+        src={logoImage}
+        alt="ASG Transport Hub Logo"
         width={200}
         height={80}
         priority

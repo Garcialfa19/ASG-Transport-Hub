@@ -8,6 +8,7 @@ export default function RouteCard({
   costo,
   origen,
   destino,
+  especificacion,
   imagenUrl,
   onClick,
 }: {
@@ -16,6 +17,7 @@ export default function RouteCard({
   costo?: number;
   origen?: string;
   destino?: string;
+  especificacion?: string;
   imagenUrl?: string;
   onClick?: () => void;
 }) {
@@ -53,6 +55,9 @@ export default function RouteCard({
 
       <div className="p-4">
         <h3 className="text-lg font-semibold line-clamp-1">{nombre}</h3>
+        {especificacion && (
+          <p className="mt-1 text-sm text-gray-600 line-clamp-2">{especificacion}</p>
+        )}
         <div className="mt-2 flex justify-between text-sm text-gray-600">
           <span className="flex items-center gap-1">
             <Clock className="h-4 w-4" /> {duracion}

@@ -48,6 +48,7 @@ export default function RoutesSectionClient({ routes }: RoutesSectionClientProps
                     nombre={route.nombre}
                     duracionMin={route.duracionMin}
                     costo={route.tarifaCRC}
+                    especificacion={route.especificacion}
                     imagenUrl={route.imagenTarjetaUrl}
                     onClick={() => handleRouteClick(route)}
                   />
@@ -66,6 +67,7 @@ export default function RoutesSectionClient({ routes }: RoutesSectionClientProps
                     nombre={route.nombre}
                     duracionMin={route.duracionMin}
                     costo={route.tarifaCRC}
+                    especificacion={route.especificacion}
                     imagenUrl={route.imagenTarjetaUrl}
                     onClick={() => handleRouteClick(route)}
                   />

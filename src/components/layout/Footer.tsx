@@ -4,7 +4,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-800 text-white">
+    <footer className="bg-[#16216C] text-white">
       <div className="container py-8 text-center">
         <p className="text-sm">&copy; {currentYear} Autotransportes Santa Gertrudis.</p>
         <div className="flex justify-center items-center gap-2 my-4">

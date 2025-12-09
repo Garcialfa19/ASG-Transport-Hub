@@ -118,7 +118,17 @@ export function DriverManager({ initialDrivers, routes }: DriverManagerProps) {
                 <TableCell>{getRouteName(driver.routeId)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Badge variant={driver.status === 'Activo' ? 'default' : 'secondary'}>
+                    <Badge
+                      className={(() => {
+                        const rawStatus = driver.status?.trim();
+                        const normalized = rawStatus?.toLowerCase();
+                        if (normalized === 'activo') return 'bg-[#16216C] text-white hover:bg-[#16216C]';
+                        if (rawStatus === 'Inactivo') return 'bg-red-600 text-white hover:bg-red-700';
+                        if (normalized === 'inactivo') return 'bg-yellow-400 text-yellow-900 hover:bg-yellow-400/90';
+                        if (normalized === 'vacaciones') return 'bg-yellow-400 text-yellow-900 hover:bg-yellow-400/90';
+                        return undefined;
+                      })()}
+                    >
                       {driver.status || 'N/A'}
                     </Badge>
                     <span className="text-sm text-muted-foreground">{driver.comment || 'Sin comentario'}</span>

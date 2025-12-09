@@ -105,7 +105,7 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Imagen</TableHead>
-              <TableHead>Nombre</TableHead>
+              <TableHead>Nombre y especificación</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Tarifa (CRC)</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
@@ -123,7 +123,14 @@ export function RouteManager({ initialRoutes }: RouteManagerProps) {
                     className="rounded-md object-cover"
                   />
                 </TableCell>
-                <TableCell className="font-medium">{route.nombre}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex flex-col gap-1">
+                    <span>{route.nombre}</span>
+                    {route.especificacion && (
+                      <span className="text-sm font-normal text-muted-foreground">{route.especificacion}</span>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell><Badge variant="secondary">{route.category}</Badge></TableCell>
                 <TableCell>₡{route.tarifaCRC.toLocaleString('es-CR')}</TableCell>
                 <TableCell className="text-right">

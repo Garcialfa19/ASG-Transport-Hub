@@ -32,7 +32,7 @@ const features = [
 export default function HistoriaPage() {
   return (
     <>
-      <section className="relative h-[400px] bg-secondary">
+      <section className="relative h-[500px] bg-secondary">
         <Image
           src={heroImage}
           alt="Vintage ASG bus"

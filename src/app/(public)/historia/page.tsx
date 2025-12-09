@@ -2,8 +2,8 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { CheckCircle, Rocket, Heart } from 'lucide-react';
+import heroImage from './HeroImage.png';
 
-const heroImage = PlaceHolderImages.find((img) => img.id === 'history-hero');
 const misionImage = PlaceHolderImages.find((img) => img.id === 'history-mision');
 const visionImage = PlaceHolderImages.find((img) => img.id === 'history-vision');
 const valoresImage = PlaceHolderImages.find((img) => img.id === 'history-valores');
@@ -33,16 +33,13 @@ export default function HistoriaPage() {
   return (
     <>
       <section className="relative h-[400px] bg-secondary">
-        {heroImage && (
-          <Image
-            src={heroImage.imageUrl}
-            alt={heroImage.description}
-            fill
-            className="object-cover"
-            data-ai-hint={heroImage.imageHint}
-            priority
-          />
-        )}
+        <Image
+          src={heroImage}
+          alt="Vintage ASG bus"
+          fill
+          className="object-cover"
+          priority
+        />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 flex h-full items-center justify-center">
           <div className="text-center text-white">

@@ -9,8 +9,7 @@ ENV FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
 RUN if [ -n "$FIREBASE_SERVICE_ACCOUNT_B64" ]; then \
   export FIREBASE_SERVICE_ACCOUNT="$(echo "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d)" ; \
   fi && \
-  npm run build && \
-  mkdir -p /app/public
+  npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
